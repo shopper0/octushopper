@@ -52,10 +52,6 @@
       background: rgba(227, 242, 253, 0.7);
       border-color: rgba(100, 181, 246, 0.4);
     }
-    .card-dest-summary {
-      background: rgba(255, 255, 255, 0.7);
-      border-color: rgba(0, 105, 92, 0.15);
-    }
     .header {
       display: flex;
       justify-content: space-between;
@@ -242,46 +238,54 @@
       min-width: 120px;
       margin-bottom: 0;
     }
-    /* ===== مبدل العملة الدائري الجديد ===== */
-    .currency-toggle-circle {
+    /* ===== مبدل العملة بالسحب (ON/OFF) ===== */
+    .currency-toggle-switch {
       display: flex;
-      gap: 16px;
       align-items: center;
       justify-content: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.5);
+      padding: 6px 12px;
+      border-radius: 40px;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      backdrop-filter: blur(4px);
+      user-select: none;
+      touch-action: none;
+      width: fit-content;
+      margin: 0 auto;
     }
-    .currency-toggle-circle .circle-currency {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
+    .currency-toggle-switch .currency-option {
+      padding: 8px 20px;
+      border-radius: 30px;
       font-weight: 700;
+      font-size: 18px;
       font-family: monospace;
       cursor: pointer;
-      transition: 0.3s;
-      border: 2px solid #ddd;
-      background: #f5f5f5;
-      color: #333;
-      user-select: none;
+      transition: all 0.25s ease;
+      border: 2px solid transparent;
+      background: transparent;
+      color: #1e293b;
+      min-width: 60px;
+      text-align: center;
     }
-    .currency-toggle-circle .circle-currency.active {
+    .currency-toggle-switch .currency-option.active-usd {
       background: #2e7d32;
       color: #fff;
       border-color: #1b5e20;
-      box-shadow: 0 4px 12px rgba(46,125,50,0.4);
+      box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
     }
-    .currency-toggle-circle .circle-currency.inactive {
-      background: #ff9800;
+    .currency-toggle-switch .currency-option.active-lbp {
+      background: #f57c00;
       color: #fff;
       border-color: #e65100;
-      box-shadow: 0 4px 12px rgba(255,152,0,0.4);
+      box-shadow: 0 4px 12px rgba(245, 124, 0, 0.3);
     }
-    .currency-toggle-circle .circle-currency:hover {
-      transform: scale(1.05);
+    .currency-toggle-switch .currency-option.inactive {
+      opacity: 0.5;
     }
-    /* نهاية مبدل العملة الدائري */
+    .currency-toggle-switch .currency-option:active {
+      transform: scale(0.94);
+    }
     .table-wrap {
       overflow-x: auto;
       border-radius: 12px;
@@ -1297,141 +1301,6 @@
     .skeleton-row td .skeleton-text {
       height: 16px;
     }
-    /* ========== تقويم محسّن ========== */
-    .calendar-wrapper {
-      position: relative;
-      display: inline-block;
-      width: 100%;
-    }
-    .calendar-dropdown {
-      position: absolute;
-      top: 110%;
-      right: 0;
-      z-index: 100;
-      background: rgba(255, 255, 255, 0.98);
-      backdrop-filter: blur(20px);
-      border-radius: 16px;
-      padding: 16px;
-      box-shadow: 0 16px 60px rgba(0, 0, 0, 0.15);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      min-width: 280px;
-      animation: slideDown 0.25s ease;
-      width: 100%;
-      max-height: 520px;
-      overflow-y: auto;
-    }
-    @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateY(-10px) scale(0.95);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-    }
-    .calendar-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-    }
-    .calendar-header .month-year {
-      font-weight: 700;
-      font-size: 16px;
-      color: #004d40;
-    }
-    .calendar-header .nav-btn {
-      background: none;
-      border: none;
-      font-size: 20px;
-      cursor: pointer;
-      color: #78909c;
-      padding: 4px 8px;
-      border-radius: 6px;
-      transition: 0.2s;
-    }
-    .calendar-header .nav-btn:hover {
-      background: rgba(0, 0, 0, 0.05);
-      color: #00695c;
-    }
-    .calendar-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 2px;
-    }
-    .calendar-grid .day-name {
-      text-align: center;
-      font-size: 11px;
-      font-weight: 700;
-      color: #78909c;
-      padding: 4px 0;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.04);
-    }
-    .calendar-grid .day-cell {
-      text-align: center;
-      padding: 6px 0;
-      font-size: 14px;
-      font-weight: 500;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: 0.2s;
-      color: #1e293b;
-    }
-    .calendar-grid .day-cell:hover {
-      background: rgba(0, 105, 92, 0.08);
-    }
-    .calendar-grid .day-cell.selected {
-      background: #00695c;
-      color: #fff;
-    }
-    .calendar-grid .day-cell.other-month {
-      color: #b0bec5;
-    }
-    .calendar-grid .day-cell.today {
-      border: 2px solid #00695c;
-    }
-    .calendar-grid .day-cell.disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-    .calendar-footer {
-      margin-top: 10px;
-      padding-top: 8px;
-      border-top: 1px solid rgba(0, 0, 0, 0.06);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 12px;
-      color: #54738f;
-    }
-    .calendar-footer .selected-date {
-      font-weight: 600;
-      color: #00695c;
-    }
-    .calendar-footer .selected-day-name {
-      font-weight: 700;
-      color: #2e7d32;
-    }
-    .calendar-icon-btn {
-      background: none;
-      border: none;
-      font-size: 20px;
-      cursor: pointer;
-      padding: 0 4px;
-      color: #78909c;
-      transition: 0.2s;
-      margin-right: 4px;
-    }
-    .calendar-icon-btn:hover {
-      color: #00695c;
-      transform: scale(1.1);
-    }
-    .calendar-icon-btn.active {
-      color: #00695c;
-    }
     .field .image-upload-wrapper {
       display: flex;
       flex-direction: column;
@@ -1706,6 +1575,7 @@
       display: flex;
       align-items: center;
       gap: 12px;
+      flex-wrap: wrap;
     }
     .header-title h1 {
       font-size: 22px;
@@ -1717,6 +1587,28 @@
       align-items: center;
       gap: 10px;
       flex-wrap: wrap;
+    }
+    .my-data-btn {
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 30px;
+      padding: 6px 14px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: 0.2s;
+      font-family: inherit;
+    }
+    .my-data-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: scale(1.02);
+    }
+    .my-data-btn:active {
+      transform: scale(0.95);
     }
     .dest-summary-item {
       display: flex;
@@ -2058,10 +1950,14 @@
       .dest-summary-item .collection-status {
         justify-content: flex-start;
       }
-      .currency-toggle-circle .circle-currency {
-        width: 50px;
-        height: 50px;
-        font-size: 18px;
+      .currency-toggle-switch .currency-option {
+        padding: 6px 16px;
+        font-size: 16px;
+        min-width: 50px;
+      }
+      .my-data-btn {
+        padding: 4px 10px;
+        font-size: 12px;
       }
     }
     @media (max-width:480px) {
@@ -2150,10 +2046,14 @@
         align-items: stretch;
         gap: 6px;
       }
-      .currency-toggle-circle .circle-currency {
-        width: 44px;
-        height: 44px;
-        font-size: 16px;
+      .currency-toggle-switch .currency-option {
+        padding: 4px 12px;
+        font-size: 14px;
+        min-width: 40px;
+      }
+      .my-data-btn {
+        padding: 2px 8px;
+        font-size: 11px;
       }
     }
     @media (min-width:769px) {
@@ -2366,114 +2266,75 @@
       color: #1e293b;
     }
 
-    /* ===== أنماط جرس الإشعارات ===== */
-    .notification-bell {
-      position: relative;
-      cursor: pointer;
+    /* ===== أنماط جرس الإشعارات (معطل) ===== */
+    .bell-placeholder {
+      cursor: default;
+      opacity: 0.7;
       font-size: 24px;
       padding: 4px 8px;
       border-radius: 8px;
-      transition: 0.2s;
-      background: rgba(255, 255, 255, 0.15);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      -webkit-tap-highlight-color: transparent;
       color: #fff;
     }
-    .notification-bell:hover {
-      background: rgba(255, 255, 255, 0.25);
-      transform: scale(1.05);
-    }
-    .notification-bell:active {
-      transform: scale(0.92);
-    }
-    .notification-badge {
-      position: absolute;
-      top: -6px;
-      right: -6px;
-      background: #c62828;
-      color: #fff;
-      border-radius: 50%;
-      width: 20px;
-      height: 20px;
-      font-size: 11px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 2px solid rgba(255, 255, 255, 0.8);
-      box-shadow: 0 2px 8px rgba(198, 40, 40, 0.3);
-    }
-    .notification-panel {
-      position: fixed;
-      top: 70px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 8000;
-      background: rgba(255, 255, 255, 0.98);
-      backdrop-filter: blur(20px);
-      border-radius: 16px;
-      padding: 16px;
-      box-shadow: 0 16px 60px rgba(0, 0, 0, 0.15);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      width: 90%;
-      max-width: 600px;
-      max-height: 80vh;
-      overflow-y: auto;
-      animation: slideDown 0.25s ease;
-    }
-    .notification-item {
+
+    /* ===== أنماط "بياناتي" (نسخة مطورة تشبه كافة البيانات) ===== */
+    .my-data-entry {
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 8px;
       padding: 10px 12px;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-      font-size: 13px;
+      margin-bottom: 8px;
+      border-right: 4px solid #00695c;
       display: flex;
       flex-direction: column;
       gap: 4px;
     }
-    .notification-item:last-child {
-      border-bottom: none;
-    }
-    .notification-item .notif-header {
+    .my-data-entry .entry-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
       flex-wrap: wrap;
+      align-items: center;
       gap: 4px;
     }
-    .notification-item .notif-type {
-      font-weight: 700;
+    .my-data-entry .entry-type {
       font-size: 12px;
+      font-weight: 700;
       padding: 2px 10px;
       border-radius: 12px;
     }
-    .notification-item .notif-type.transfer {
-      background: rgba(198, 40, 40, 0.12);
+    .my-data-entry .entry-type.transfer {
+      background: rgba(198, 40, 40, 0.15);
       color: #c62828;
     }
-    .notification-item .notif-type.delivery {
-      background: rgba(46, 125, 50, 0.12);
+    .my-data-entry .entry-type.delivery {
+      background: rgba(46, 125, 50, 0.15);
       color: #2e7d32;
     }
-    .notification-item .notif-amount {
+    .my-data-entry .entry-amount {
       font-weight: 700;
+      font-size: 16px;
       font-family: monospace;
-      font-size: 14px;
     }
-    .notification-item .notif-dest {
-      font-size: 12px;
+    .my-data-entry .entry-dest {
+      font-size: 13px;
       color: #004d40;
       background: rgba(0, 105, 92, 0.08);
-      padding: 2px 8px;
+      padding: 0 8px;
       border-radius: 4px;
     }
-    .notification-item .notif-time {
-      font-size: 11px;
+    .my-data-entry .entry-time {
+      font-size: 12px;
       color: #78909c;
       font-family: monospace;
     }
-    .notification-item .notif-image {
+    .my-data-entry .entry-notes {
+      font-size: 13px;
+      color: #54738f;
+    }
+    .my-data-entry .entry-image {
       max-width: 80px;
       max-height: 80px;
       border-radius: 6px;
@@ -2481,121 +2342,142 @@
       cursor: pointer;
       margin-top: 4px;
     }
-    .notification-item .notif-diff {
-      font-size: 12px;
-      font-weight: 600;
-      font-family: monospace;
-    }
-    .notification-item .notif-diff.positive {
-      color: #2e7d32;
-    }
-    .notification-item .notif-diff.negative {
-      color: #c62828;
-    }
-    .notification-item .notif-diff.neutral {
-      color: #f57c00;
-    }
-    .notification-empty {
+    .my-data-empty {
       text-align: center;
       padding: 30px;
       color: #78909c;
       font-size: 14px;
     }
-    .notification-panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-      padding-bottom: 10px;
-      margin-bottom: 10px;
+    .my-data-list {
+      max-height: 60vh;
+      overflow-y: auto;
+      padding: 4px 0;
     }
-    .notification-panel-header h3 {
+    .my-data-modal .modal-box {
+      max-width: 800px; /* أوسع لعرض الجدول */
+    }
+    /* أنماط نافذة الرمز السري */
+    .secret-input-modal .modal-box {
+      max-width: 400px;
+    }
+    /* تنسيق حقل المبلغ */
+    .amount-input-wrapper {
+      position: relative;
+    }
+    .amount-input-wrapper input {
+      padding-left: 40px;
+      font-family: monospace;
       font-size: 18px;
-      color: #004d40;
-      margin: 0;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      direction: ltr;
+      text-align: right;
     }
-    .notification-panel-close {
-      background: none;
-      border: none;
-      font-size: 22px;
-      cursor: pointer;
-      color: #90a4ae;
-      transition: 0.2s;
+    .amount-input-wrapper .currency-symbol {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 16px;
+      font-weight: 700;
+      color: #78909c;
+      pointer-events: none;
     }
-    .notification-panel-close:hover {
-      color: #1e293b;
+    .amount-input-wrapper .currency-symbol.usd {
+      color: #2e7d32;
     }
-    .notif-secret-modal {
-      position: fixed;
-      inset: 0;
-      z-index: 8500;
-      background: rgba(0, 0, 0, 0.3);
-      backdrop-filter: blur(4px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      animation: slideUp 0.3s ease;
+    .amount-input-wrapper .currency-symbol.lbp {
+      color: #f57c00;
     }
-    .notif-secret-box {
-      background: rgba(255, 255, 255, 0.98);
-      backdrop-filter: blur(16px);
-      border-radius: 20px;
-      padding: 24px;
-      width: 100%;
-      max-width: 380px;
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
+    .amount-input-wrapper .field-error {
+      border-color: #c62828 !important;
+      box-shadow: 0 0 0 3px rgba(198, 40, 40, 0.12) !important;
     }
-    .notif-secret-box h4 {
-      color: #004d40;
-      margin-bottom: 12px;
-      font-size: 18px;
-      text-align: center;
-    }
-    .notif-secret-box .field {
-      margin-bottom: 12px;
-    }
-    .notif-secret-box .field label {
+    .amount-input-wrapper .amount-error {
       font-size: 12px;
-    }
-    .notif-secret-box .btn-row {
-      justify-content: center;
+      color: #c62828;
+      font-weight: 600;
+      margin-top: 4px;
     }
 
-    /* ===== منع الوصول من الكومبيوتر ===== */
-    .mobile-only {
-      display: none;
+    /* أنماط إضافية لعرض جدولي مفصل */
+    .my-data-table-wrap {
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      background: rgba(255, 255, 255, 0.5);
+      margin-top: 8px;
     }
-    @media (pointer: coarse) {
-      .mobile-only {
-        display: block;
-      }
+    .my-data-table-wrap table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      min-width: 700px;
     }
-    @media (pointer: fine) {
-      body {
-        display: none !important;
-      }
-      html::after {
-        content: "هذا التطبيق يعمل على الهواتف المحمولة فقط";
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        font-size: 24px;
-        color: #c62828;
-        background: #fff;
-        font-weight: 700;
-        text-align: center;
-        padding: 20px;
-        direction: rtl;
-      }
+    .my-data-table-wrap th,
+    .my-data-table-wrap td {
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+      vertical-align: middle;
+      text-align: right;
     }
-    /* منع F12 ولوحة المطورين */
-    .dev-blocker {
-      display: none;
+    .my-data-table-wrap th {
+      background: rgba(224, 242, 241, 0.5);
+      color: #004d40;
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      position: sticky;
+      top: 0;
+      z-index: 2;
     }
-    .live-clock {
-      color: #fff;
+    .my-data-table-wrap .type-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .my-data-table-wrap .type-badge.transfer {
+      background: rgba(198, 40, 40, 0.15);
+      color: #c62828;
+    }
+    .my-data-table-wrap .type-badge.delivery {
+      background: rgba(46, 125, 50, 0.15);
+      color: #2e7d32;
+    }
+    .my-data-table-wrap .image-thumb {
+      max-width: 50px;
+      max-height: 50px;
+      border-radius: 4px;
+      border: 1px solid rgba(0,0,0,0.06);
+      cursor: pointer;
+    }
+    .my-data-table-wrap .entry-notes {
+      font-size: 12px;
+      color: #54738f;
+      max-width: 150px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .my-data-table-wrap .dest-chip {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: rgba(0, 105, 92, 0.08);
+      color: #004d40;
+      display: inline-block;
+    }
+    .my-data-table-wrap .time-chip {
+      font-size: 12px;
+      color: #78909c;
+      font-family: monospace;
+    }
+    .my-data-table-wrap .date-chip {
+      font-size: 12px;
+      color: #00695c;
     }
   </style>
 </head>
@@ -2604,10 +2486,8 @@
 
   <script>
     // ================================================================
-    //  OCTUSHOPPER – الإصدار النهائي مع أيقونات عملة دائرية وتغيير النصوص
-    //  تم تغيير اسم التطبيق إلى "نظام المحاسبة" وأيقونة 🖥️
-    //  تم تغيير نص واجهة المستخدم إلى "قسم الإدارة" مع أيقونة 💻🗄️
-    //  تم تعميم مبدل العملة الدائري في كل الواجهات.
+    //  OCTUSHOPPER – الإصدار النهائي مع قسم "بياناتي" مطور (نسخة كافة البيانات)
+    //  مع الحفاظ على باقي الوظائف كما هي
     // ================================================================
 
     // ─── 1. منع تحديث الصفحة ──────────────────────────────────────
@@ -2645,7 +2525,6 @@
         e.preventDefault();
         return false;
       });
-      // حماية إضافية: كشف فتح أدوات المطور
       const element = new Image();
       Object.defineProperty(element, 'id', {
         get: function() {
@@ -2656,7 +2535,6 @@
         try {
           console.log('%c', '');
         } catch(e) {
-          // DevTools مفتوحة
           document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-size:24px;color:#c62828;background:#fff;font-weight:700;text-align:center;padding:20px;direction:rtl;">⛔ هذا التطبيق محمي ولا يمكن فتح أدوات المطور</div>';
         }
         requestAnimationFrame(check);
@@ -2696,7 +2574,7 @@
       { id: 7, ar: "الأحد" }
     ];
 
-    // ─── 3. دوال مساعدة (التاريخ، العملات، التنسيق) ──────────────
+    // ─── 3. دوال مساعدة ──────────────────────────────────────────
     const USD_TO_LBP_RATE = 90000;
     const LBP_TO_USD_RATE = 89000;
 
@@ -2993,7 +2871,7 @@
     };
     SyncManager.init();
 
-    // ─── 5.1 مدير حذف اليوم ──────────────────────────────────────
+    // ─── 6. مدير حذف اليوم ──────────────────────────────────────
     const DayDeletionManager = {
       deleteDayData(dayId) {
         return new Promise((resolve, reject) => {
@@ -3032,7 +2910,7 @@
       }
     };
 
-    // ─── 6. إدارة الحالة (Reducer & Context) ──────────────────
+    // ─── 7. إدارة الحالة (Reducer & Context) ──────────────────
     const ACTIONS = {
       BATCH_INIT: 'BATCH_INIT',
       SET_MEMBERS: 'SET_MEMBERS',
@@ -3217,7 +3095,7 @@
       }
     }
 
-    // ─── 7. Context Provider ──────────────────────────────────────
+    // ─── 8. Context Provider ──────────────────────────────────────
     const StateContext = React.createContext(null);
 
     function StateProvider({ children }) {
@@ -3321,7 +3199,7 @@
       return context;
     }
 
-    // ─── 8. مدير الاتصال ────────────────────────────────────────
+    // ─── 9. مدير الاتصال ────────────────────────────────────────
     const ConnectionManager = {
       listeners: [],
       isOnline: navigator.onLine,
@@ -3340,7 +3218,7 @@
     };
     ConnectionManager.init();
 
-    // ─── 9. مكونات واجهة المستخدم الأساسية ──────────────────────
+    // ─── 10. مكونات واجهة المستخدم الأساسية ────────────────────
     const Btn = React.memo(({ children, onClick, variant = "primary", size = "", disabled, style, type = "button" }) =>
       React.createElement("button", { className: `btn btn-${variant} ${size}`, onClick, disabled, style, type },
         children)
@@ -3366,19 +3244,68 @@
       )
     );
 
-    // ===== مبدل العملة الدائري الجديد (معمم في كل الواجهات) =====
-    const CurrencyToggle = React.memo(({ value, onChange }) =>
-      React.createElement("div", { className: "currency-toggle-circle" },
-        ["$", "LL"].map(c => {
-          const isActive = value === c;
-          return React.createElement("div", {
-            key: c,
-            className: `circle-currency ${isActive ? 'active' : 'inactive'}`,
-            onClick: () => onChange(c)
-          }, c);
-        })
-      )
-    );
+    // ===== مبدل العملة =====
+    const CurrencyToggleSwitch = React.memo(({ value, onChange }) => {
+      const [isDragging, setIsDragging] = React.useState(false);
+      const [startX, setStartX] = React.useState(0);
+      const wrapperRef = React.useRef(null);
+
+      const handleTouchStart = (e) => {
+        const touch = e.touches[0];
+        setStartX(touch.clientX);
+        setIsDragging(true);
+      };
+
+      const handleTouchMove = (e) => {
+        if (!isDragging) return;
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - startX;
+        if (Math.abs(deltaX) > 30) {
+          if (deltaX < 0 && value === "$") {
+            onChange("LL");
+            setIsDragging(false);
+          } else if (deltaX > 0 && value === "LL") {
+            onChange("$");
+            setIsDragging(false);
+          }
+          setStartX(touch.clientX);
+        }
+      };
+
+      const handleTouchEnd = () => {
+        setIsDragging(false);
+      };
+
+      const handleClick = (val) => {
+        if (val !== value) onChange(val);
+      };
+
+      const isUSD = value === "$";
+      const isLBP = value === "LL";
+
+      return React.createElement("div", {
+        className: "currency-toggle-switch",
+        ref: wrapperRef,
+        onTouchStart: handleTouchStart,
+        onTouchMove: handleTouchMove,
+        onTouchEnd: handleTouchEnd,
+        onMouseDown: (e) => {
+          const rect = wrapperRef.current.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const mid = rect.width / 2;
+          if (x < mid && value === "LL") { onChange("$"); } else if (x >= mid && value === "$") { onChange("LL"); }
+        }
+      },
+        React.createElement("span", {
+          className: `currency-option ${isUSD ? "active-usd" : "inactive"}`,
+          onClick: () => handleClick("$")
+        }, "$"),
+        React.createElement("span", {
+          className: `currency-option ${isLBP ? "active-lbp" : "inactive"}`,
+          onClick: () => handleClick("LL")
+        }, "ل.ل")
+      );
+    });
 
     const Overlay = React.memo(({ onClose, children }) => {
       React.useEffect(() => { const h = e => { if (e.key === "Escape") onClose(); };
@@ -3449,147 +3376,121 @@
       );
     });
 
-    // ─── 10. مكونات متقدمة ────────────────────────────────────────
-    const CalendarDropdown = React.memo(({ onSelect, onClose, initialDate = getLiveDateStr() }) => {
-      const todayStr = getLiveDateStr();
-      const maxDateObj = new Date();
-      const [currentDate, setCurrentDate] = React.useState(() => {
-        const parts = initialDate.split('/');
-        if (parts.length === 3) { const d = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
-          if (d > maxDateObj) return new Date(maxDateObj); return d; }
-        return new Date(maxDateObj);
-      });
-      const [selectedDateStr, setSelectedDateStr] = React.useState(() => {
-        const parts = initialDate.split('/');
-        if (parts.length === 3) { const d = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
-          if (d > maxDateObj) return todayStr; }
-        return initialDate;
-      });
-      const wrapperRef = React.useRef(null);
-      const daysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
-      const firstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
-      const renderCalendar = () => {
-        const year = currentDate.getFullYear(),
-          month = currentDate.getMonth();
-        const daysCount = daysInMonth(year, month),
-          firstDay = firstDayOfMonth(year, month);
-        const dayNames = ['أحد', 'إثن', 'ثلث', 'أرب', 'خميس', 'جمع', 'سبت'];
-        const cells = [];
-        dayNames.forEach((name, idx) => { cells.push(React.createElement("div", { key: 'header-' + idx,
-            className: "day-name" }, name)); });
-        for (let i = 0; i < firstDay; i++) cells.push(React.createElement("div", { key: 'empty-' + i,
-          className: "day-cell" }, ""));
-        for (let d = 1; d <= daysCount; d++) {
-          const dateObj = new Date(year, month, d);
-          const dateStr = String(d).padStart(2, '0') + '/' + String(month + 1).padStart(2, '0') + '/' + year;
-          const isSelected = dateStr === selectedDateStr;
-          const isToday = dateStr === todayStr;
-          const isFuture = dateObj > maxDateObj;
-          const cellClass = "day-cell" + (isSelected ? " selected" : "") + (isToday ? " today" : "") + (isFuture ?
-            " disabled" : "");
-          cells.push(React.createElement("div", { key: 'day-' + d, className: cellClass, onClick: () => { if (!
-                isFuture) handleDateSelect(dateStr); } }, d));
+    // ─── 11. مكونات متقدمة ──────────────────────────────────────
+    const AmountInput = React.memo(({ value, onChange, currency, placeholder, autoFocus, onKeyDown, ref,
+        min = 1, max = 10000 }) => {
+      const [error, setError] = React.useState('');
+      const [internalValue, setInternalValue] = React.useState('');
+      const inputRef = React.useRef(null);
+
+      React.useEffect(() => {
+        if (value !== undefined && value !== null && value !== '') {
+          const strVal = String(value).replace(/,/g, '');
+          const num = parseInt(strVal, 10);
+          if (!isNaN(num) && num >= 0) {
+            setInternalValue(String(num));
+          } else {
+            setInternalValue('');
+          }
+        } else {
+          setInternalValue('');
         }
-        return cells;
+      }, [value]);
+
+      const validateAndSet = (raw) => {
+        const cleaned = raw.replace(/[^0-9]/g, '');
+        if (cleaned === '') {
+          setInternalValue('');
+          onChange('');
+          setError('');
+          return;
+        }
+        const num = parseInt(cleaned, 10);
+        if (isNaN(num) || num < 0) {
+          setInternalValue(cleaned);
+          onChange(cleaned);
+          setError('الرجاء إدخال رقم صحيح');
+          return;
+        }
+        if (num < min) {
+          setError(`الحد الأدنى هو ${min}`);
+        } else if (num > max) {
+          setError(`الحد الأقصى هو ${max}`);
+        } else {
+          setError('');
+        }
+        setInternalValue(cleaned);
+        onChange(cleaned);
       };
-      const handleDateSelect = (dateStr) => { setSelectedDateStr(dateStr); const dayName = getDayNameFromDate(
-          dateStr); if (onSelect) onSelect(dateStr, dayName); if (onClose) setTimeout(onClose, 200); };
-      const changeMonth = (delta) => { const newDate = new Date(currentDate); newDate.setMonth(currentDate.getMonth() +
-          delta); const firstOfMonth = new Date(newDate.getFullYear(), newDate.getMonth(), 1); if (firstOfMonth >
-          maxDateObj) { setCurrentDate(new Date(maxDateObj)); } else { setCurrentDate(newDate); } };
-      const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر',
-        'نوفمبر', 'ديسمبر'
-      ];
-      const selectedDayName = getDayNameFromDate(selectedDateStr);
-      React.useEffect(() => { const handleClickOutside = (e) => { if (wrapperRef.current && !wrapperRef.current
-            .contains(e.target)) { if (onClose) onClose(); } };
-        document.addEventListener('mousedown', handleClickOutside); return () => document.removeEventListener(
-          'mousedown', handleClickOutside); }, [onClose]);
-      return React.createElement("div", { className: "calendar-dropdown", ref: wrapperRef },
-        React.createElement("div", { className: "calendar-header" },
-          React.createElement("div", null,
-            React.createElement("button", { className: "calendar-close-btn", onClick: onClose, title: "إغلاق" },
-              "✕")
-          ),
-          React.createElement("div", null,
-            React.createElement("button", { className: "nav-btn", onClick: () => changeMonth(-1) }, "‹"),
-            React.createElement("span", { className: "month-year" }, monthNames[currentDate.getMonth()] + " " +
-              currentDate.getFullYear()),
-            React.createElement("button", { className: "nav-btn", onClick: () => changeMonth(1) }, "›")
-          )
-        ),
-        React.createElement("div", { className: "calendar-grid" }, renderCalendar()),
-        React.createElement("div", { className: "calendar-footer" },
-          React.createElement("span", null, "📅 ", React.createElement("span", { className: "selected-date" },
-            formatDateDisplay(selectedDateStr))),
-          selectedDayName ? React.createElement("span", null, "📆 ", React.createElement("span", { className:
-              "selected-day-name" }, selectedDayName)) : null,
-          React.createElement("span", null, "🗓 ", React.createElement("span", { style: { color: "#00695c",
-              fontWeight: 700 } }, "اختر التاريخ"))
-        )
+
+      const handleChange = (e) => {
+        const raw = e.target.value;
+        validateAndSet(raw);
+      };
+
+      const handleBlur = () => {
+        if (internalValue !== '') {
+          const num = parseInt(internalValue, 10);
+          if (!isNaN(num)) {
+            if (num < min) {
+              setError(`الحد الأدنى هو ${min}`);
+            } else if (num > max) {
+              setError(`الحد الأقصى هو ${max}`);
+            } else {
+              setError('');
+            }
+          }
+        }
+      };
+
+      const handleFocus = () => {
+        if (internalValue !== '') {
+          const num = parseInt(internalValue, 10);
+          if (!isNaN(num)) {
+            setInternalValue(String(num));
+          }
+        }
+      };
+
+      const isUSD = currency === '$';
+      const symbol = isUSD ? '$' : 'ل.ل';
+      const symbolClass = isUSD ? 'usd' : 'lbp';
+
+      return React.createElement("div", { className: "amount-input-wrapper" },
+        React.createElement(Input, {
+          ref: (el) => {
+            inputRef.current = el;
+            if (ref) {
+              if (typeof ref === 'function') ref(el);
+              else ref.current = el;
+            }
+          },
+          value: internalValue,
+          onChange: handleChange,
+          onBlur: handleBlur,
+          onFocus: handleFocus,
+          placeholder: placeholder || (isUSD ? '0' : '0'),
+          type: "text",
+          autoFocus: autoFocus,
+          onKeyDown: onKeyDown,
+          className: error ? 'field-error' : '',
+          style: {
+            fontSize: '18px',
+            fontWeight: 700,
+            color: isUSD ? '#2e7d32' : '#f57c00',
+            paddingLeft: '40px',
+            direction: 'ltr',
+            textAlign: 'right'
+          }
+        }),
+        React.createElement("span", { className: `currency-symbol ${symbolClass}` }, symbol),
+        error ? React.createElement("div", { className: "amount-error" }, error) : null
       );
     });
 
-    const RequiredImageUpload = React.memo(({ value, onChange, onError, error = false, onImageClick, required = true }) => {
-      const [preview, setPreview] = React.useState(null);
-      const [fileName, setFileName] = React.useState("");
-      const fileInputRef = React.useRef(null);
-      const handleFile = (file) => { if (!file) return; setFileName(file.name); const reader = new FileReader();
-        reader.onload = (ev) => { const img = new Image();
-          img.onload = () => { const canvas = document.createElement('canvas'); let width = img.width,
-              height = img.height; const maxWidth = 1200,
-              maxHeight = 1200; if (width > maxWidth || height > maxHeight) { const ratio = Math.min(maxWidth /
-                width, maxHeight / height);
-              width *= ratio;
-              height *= ratio; }
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = 'high';
-            ctx.drawImage(img, 0, 0, width, height);
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
-            setPreview(dataUrl);
-            onChange(dataUrl);
-            if (onError) onError(false); };
-          img.src = ev.target.result; };
-        reader.readAsDataURL(file); };
-      const handleFileInput = (e) => { const file = e.target.files[0]; if (!file) return; handleFile(file);
-        e.target.value = ''; };
-      const handleCamera = () => { if (fileInputRef.current) { fileInputRef.current.capture = 'environment';
-          fileInputRef.current.accept = 'image/*';
-          fileInputRef.current.click(); } };
-      const handleGallery = () => { if (fileInputRef.current) { fileInputRef.current.removeAttribute('capture');
-          fileInputRef.current.accept = 'image/*';
-          fileInputRef.current.click(); } };
-      const removeImage = () => { setPreview(null); setFileName(''); onChange(null); if (onError && required)
-          onError(true); };
-      const handlePreviewClick = () => { if (preview && onImageClick) onImageClick(preview); };
-      const showError = required && error && !preview;
-      return React.createElement("div", { className: "image-upload-wrapper" },
-        React.createElement("div", { className: "upload-buttons" },
-          React.createElement("button", { className: "upload-btn", onClick: handleCamera }, React.createElement(
-            "span", { className: "icon" }, "📷"), "تصوير مباشر"),
-          React.createElement("button", { className: "upload-btn", onClick: handleGallery }, React.createElement(
-            "span", { className: "icon" }, "🖼️"), "من الاستوديو"),
-          React.createElement("input", { ref: fileInputRef, type: "file", accept: "image/*", capture: "environment",
-            style: { display: "none" }, onChange: handleFileInput })
-        ),
-        preview ? React.createElement(React.Fragment, null,
-          React.createElement("img", { src: preview, className: "image-preview", alt: "صورة النقود", onClick: 
-              handlePreviewClick, title: "اضغط للتكبير" }),
-          React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" } },
-            React.createElement("span", { className: "image-name" }, `📎 ${fileName}`),
-            React.createElement("button", { className: "remove-image-btn", onClick: removeImage }, "🗑 إزالة")
-          )
-        ) : null,
-        showError ? React.createElement("div", { className: "error-message" }, React.createElement("span",
-          null, "🚨"), "يرجى إدراج صورة النقود") : null
-      );
-    });
-
+    // SmartSearchInput
     const SmartSearchInput = React.memo(({ value, onChange, placeholder, items = [], onSelect, autoFocus = false,
-        onKeyDown, nextRef, debounceDelay = 80, showIcon = true }) => {
+        onKeyDown, nextRef, debounceDelay = 80, showIcon = true, inputRef: externalRef }) => {
       const [showResults, setShowResults] = React.useState(false);
       const [filteredItems, setFilteredItems] = React.useState([]);
       const [selectedIndex, setSelectedIndex] = React.useState(0);
@@ -3598,6 +3499,26 @@
       const inputRef = React.useRef(null);
       const wrapperRef = React.useRef(null);
       const debounceTimerRef = React.useRef(null);
+
+      React.useEffect(() => {
+        if (externalRef) {
+          if (typeof externalRef === 'function') {
+            externalRef(inputRef.current);
+          } else {
+            externalRef.current = inputRef.current;
+          }
+        }
+      }, [externalRef]);
+
+      React.useEffect(() => {
+        if (inputRef.current) {
+          inputRef.current.setAttribute('inputmode', 'text');
+        }
+        if (autoFocus && inputRef.current) {
+          setTimeout(() => inputRef.current.focus(), 100);
+        }
+      }, [autoFocus]);
+
       const filterItems = (searchTerm) => {
         if (!searchTerm || !searchTerm.trim()) { setFilteredItems([]);
           setShowResults(false); return; }
@@ -3640,32 +3561,54 @@
         setShowResults(finalItems.length > 0);
         setSelectedIndex(0);
       };
+
       const handleChange = (e) => { const val = e.target.value; setInternalValue(val); setIsActive(true); if (
           debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
         debounceTimerRef.current = setTimeout(() => { onChange(val);
           filterItems(val); }, debounceDelay); };
-      const handleSelect = (item) => { if (onSelect) onSelect(item); setInternalValue(item); setShowResults(false);
-        setFilteredItems([]); if (inputRef.current) inputRef.current.blur(); };
-      const handleKeyDown = (e) => { if (e.key === 'ArrowDown') { e.preventDefault(); setSelectedIndex(prev => Math
-            .min(prev + 1, filteredItems.length - 1)); } else if (e.key === 'ArrowUp') { e.preventDefault();
-          setSelectedIndex(prev => Math.max(prev - 1, 0)); } else if (e.key === 'Enter') { if (filteredItems.length >
-            0 && selectedIndex >= 0 && selectedIndex < filteredItems.length) { e.preventDefault();
-            handleSelect(filteredItems[selectedIndex]); } else if (onKeyDown) { onKeyDown(e); } else if (nextRef &&
-            nextRef.current) { e.preventDefault();
-            nextRef.current.focus(); } } else if (e.key === 'Escape') { setShowResults(false); } };
+
+      const handleSelect = (item) => {
+        if (onSelect) onSelect(item);
+        setInternalValue(item);
+        setShowResults(false);
+        setFilteredItems([]);
+        if (inputRef.current) inputRef.current.blur();
+        if (nextRef && nextRef.current) {
+          setTimeout(() => nextRef.current.focus(), 50);
+        }
+      };
+
+      const handleKeyDown = (e) => {
+        if (e.key === 'ArrowDown') { e.preventDefault(); setSelectedIndex(prev => Math.min(prev + 1, filteredItems
+            .length - 1)); } else if (e.key === 'ArrowUp') { e.preventDefault(); setSelectedIndex(prev => Math.max(
+            prev - 1, 0)); } else if (e.key === 'Enter') {
+          if (filteredItems.length > 0 && selectedIndex >= 0 && selectedIndex < filteredItems.length) {
+            e.preventDefault();
+            handleSelect(filteredItems[selectedIndex]);
+          } else if (onKeyDown) { onKeyDown(e); } else if (nextRef && nextRef.current) {
+            e.preventDefault();
+            nextRef.current.focus();
+          }
+        } else if (e.key === 'Escape') { setShowResults(false); }
+      };
+
       const handleBlur = () => { setTimeout(() => { setShowResults(false);
           setIsActive(false); }, 150); };
+
       React.useEffect(() => { const handler = (e) => { if (wrapperRef.current && !wrapperRef.current.contains(e
             .target)) { setShowResults(false); } };
         document.addEventListener('mousedown', handler); return () => document.removeEventListener('mousedown',
           handler); }, []);
+
       React.useEffect(() => { if (value !== internalValue) setInternalValue(value); }, [value]);
+
       React.useEffect(() => { return () => { if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current); }; },
         []);
+
       return React.createElement("div", { className: "search-input", ref: wrapperRef },
         React.createElement(Input, { ref: inputRef, value: internalValue, onChange: handleChange, placeholder,
-          autoFocus, onKeyDown: handleKeyDown, onBlur: handleBlur, style: { paddingRight: showIcon ? '36px' :
-            '14px' } }),
+          autoFocus: autoFocus, onKeyDown: handleKeyDown, onBlur: handleBlur, style: { paddingRight: showIcon ?
+              '36px' : '14px' } }),
         showIcon ? React.createElement("span", { className: `search-icon-small${(isActive || (internalValue &&
             internalValue.length > 0)) ? " visible" : ""}${showResults ? " active" : ""}` }, "🔎") : null,
         showResults && filteredItems.length > 0 ?
@@ -3695,8 +3638,7 @@
       return handlers;
     }
 
-    // ─── 11. مكونات الأعمال ──────────────────────────────────────
-    // شريحة الإدخال
+    // ─── 12. مكونات الأعمال ──────────────────────────────────────
     const EntryChip = React.memo(({ entry, type, onEdit, onDelete, onSetFirst, onSetLast, isFirst, isLast,
         destinations = [], onImageClick }) => {
       const isD = type === "delivery";
@@ -3737,7 +3679,6 @@
       );
     });
 
-    // نموذج إدخال الإدارة
     const AdminEntryForm = React.memo(({ type, member, initial = {}, onSave, onCancel, destinations = [] }) => {
       const STORAGE_KEY = `adminEntry_${member}_${type}`;
       const loadData = () => { try { const saved = localStorage.getItem(STORAGE_KEY); if (saved) return JSON.parse(
@@ -3745,64 +3686,61 @@
       const initialData = loadData();
       const [amt, setAmt] = React.useState(initial.amount || initialData.amt || "");
       const [curr, setCurr] = React.useState(initial.currency || initialData.curr || "$");
-      const [time, setTime] = React.useState(initial.time || initialData.time || getLiveTime());
-      const [day, setDay] = React.useState(initial.day || initialData.day || getLiveDayName());
       const [dest, setDest] = React.useState(initial.dest || initialData.dest || (destinations.length ? destinations[
         0].name : ""));
       const [notes, setNotes] = React.useState(initial.notes || initialData.notes || "");
       const [image, setImage] = React.useState(initial.image || initialData.image || null);
       const isDelivery = type === "delivery";
-      const [selectedDate, setSelectedDate] = React.useState(initialData.selectedDate || getLiveDateStr());
-      const [showCalendar, setShowCalendar] = React.useState(false);
       const [imageError, setImageError] = React.useState(false);
-      const timeRef = React.useRef(null);
       const amtRef = React.useRef(null);
       const destRef = React.useRef(null);
       const notesRef = React.useRef(null);
+
+      const getMinMax = (currency) => {
+        return { min: 1, max: currency === "$" ? 10000 : 10000000 };
+      };
+
       const saveData = (data) => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (e) {} };
-      const updateState = (key, value) => { const newState = { amt, curr, time, day, dest, notes, selectedDate,
-          image };
+      const updateState = (key, value) => { const newState = { amt, curr, dest, notes, image };
         newState[key] = value;
         setAmt(newState.amt);
         setCurr(newState.curr);
-        setTime(newState.time);
-        setDay(newState.day);
         setDest(newState.dest);
         setNotes(newState.notes);
-        setSelectedDate(newState.selectedDate);
         setImage(newState.image);
         saveData(newState); };
       const clearData = () => { try { localStorage.removeItem(STORAGE_KEY); } catch (e) {} };
-      const handleAmtChange = e => updateState('amt', e.target.value);
-      const handleCurrChange = val => updateState('curr', val);
-      const handleTimeChange = e => updateState('time', e.target.value);
-      const handleDayChange = val => updateState('day', val);
-      const handleDestChange = e => updateState('dest', e.target.value);
-      const handleNotesChange = e => updateState('notes', e.target.value);
-      const handleImageChange = (dataUrl) => { setImage(dataUrl); const newState = { amt, curr, time, day, dest,
-          notes, selectedDate, image: dataUrl };
+
+      const handleAmtChange = (val) => updateState('amt', val);
+      const handleCurrChange = (val) => updateState('curr', val);
+      const handleDestChange = (e) => updateState('dest', e.target.value);
+      const handleNotesChange = (e) => updateState('notes', e.target.value);
+      const handleImageChange = (dataUrl) => { setImage(dataUrl); const newState = { amt, curr, dest, notes,
+          image: dataUrl };
         saveData(newState); if (dataUrl) setImageError(false); };
       const handleImageError = hasError => setImageError(hasError);
       const handleImageClick = (src) => { if (window.onImageClick) window.onImageClick(src); };
-      const handleDateSelect = (dateStr, dayName) => { setSelectedDate(dateStr); setDay(dayName || getDayNameFromDate(
-          dateStr) || getLiveDayName()); const newState = { amt, curr, time, day: dayName || getDayNameFromDate(
-            dateStr) || getLiveDayName(), dest, notes, selectedDate: dateStr, image };
-        saveData(newState);
-        setShowCalendar(false); };
-      const toggleCalendar = () => setShowCalendar(!showCalendar);
+
       const submit = () => {
         if (!amt || isNaN(+amt) || +amt <= 0) { alert("المبلغ غير صحيح"); return; }
+        const limits = getMinMax(curr);
+        const num = parseFloat(amt);
+        if (num < limits.min || num > limits.max) {
+          alert(`المبلغ يجب أن يكون بين ${limits.min} و ${limits.max}`);
+          return;
+        }
         if (isDelivery && !image) { setImageError(true);
           alert("🚨 يرجى إدراج صورة النقود"); return; }
-        const { entryDate, entryDay, journalDate, journalDay } = getJournalAndEntryDates(time || getLiveTime(),
-          selectedDate);
+        const time = getLiveTime();
+        const selectedDate = getLiveDateStr();
+        const { entryDate, entryDay, journalDate, journalDay } = getJournalAndEntryDates(time, selectedDate);
         let finalNotes = notes || "";
         if (!isDelivery) finalNotes += (finalNotes ? " " : "") + "(مرسلة بواسطة الإدارة)";
         const data = {
           id: initial.id || uid(),
           amount: +amt,
           currency: curr,
-          time: time || getLiveTime(),
+          time: time,
           day: journalDay || getLiveDayName(),
           entryDay: entryDay || getLiveDayName(),
           entryDate: entryDate || getLiveDateStr(),
@@ -3815,42 +3753,41 @@
         clearData();
         onSave(data);
       };
+
+      const limits = getMinMax(curr);
+
       return React.createElement("div", null,
         React.createElement("div", { style: { fontWeight: 600, marginBottom: 8 } }, "العضو: " + member),
-        React.createElement(Field, { label: "العملة" }, React.createElement(CurrencyToggle, { value: curr,
-          onChange: handleCurrChange })),
+        React.createElement(Field, { label: "العملة" },
+          React.createElement(CurrencyToggleSwitch, { value: curr, onChange: handleCurrChange })
+        ),
         React.createElement(Field, { label: `المبلغ (${curr})` },
-          React.createElement(Input, { ref: amtRef, value: amt, onChange: handleAmtChange, type: "number",
-            placeholder: curr === "$" ? "0.00" : "0", autoFocus: true, style: { fontSize: 18, fontWeight: 700,
-              color: isDelivery ? "#2e7d32" : "#c62828" }, onKeyDown: e => { if (e.key === 'Enter') { e
-                .preventDefault(); if (isDelivery && destRef.current) destRef.current.focus(); else if (
-                  timeRef.current) timeRef.current.focus(); } } })
+          React.createElement(AmountInput, {
+            ref: amtRef,
+            value: amt,
+            onChange: handleAmtChange,
+            currency: curr,
+            placeholder: curr === "$" ? "0" : "0",
+            autoFocus: true,
+            min: limits.min,
+            max: limits.max,
+            onKeyDown: (e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                if (isDelivery && destRef.current) destRef.current.focus();
+                else if (notesRef.current) notesRef.current.focus();
+              }
+            }
+          })
         ),
         isDelivery ? React.createElement(Field, { label: "جهة التسليم" },
-          React.createElement(Select, { ref: destRef, value: dest, onChange: handleDestChange, onKeyDown: e => {
-              if (e.key === 'Enter') { e.preventDefault(); if (timeRef.current) timeRef.current.focus(); } } },
+          React.createElement(Select, { ref: destRef, value: dest, onChange: handleDestChange, onKeyDown: (e) => {
+              if (e.key === 'Enter') { e.preventDefault(); if (notesRef.current) notesRef.current.focus(); } } },
             React.createElement("option", { value: "" }, "— اختر جهة —"),
             destinations.map(d => React.createElement("option", { key: d.id, value: d.name }, d.icon + " " + d
               .name))
           )
         ) : null,
-        React.createElement("div", { className: "field-row" },
-          React.createElement(Field, { label: "التاريخ", required: true },
-            React.createElement("div", { className: "calendar-wrapper" },
-              React.createElement("div", { className: "date-picker-trigger", onClick: toggleCalendar },
-                React.createElement("span", { className: "value" }, formatDateDisplay(selectedDate) + " (" + (
-                  getDayNameFromDate(selectedDate) || getLiveDayName()) + ")"),
-                React.createElement("span", { className: "icon" }, "📅")
-              ),
-              showCalendar ? React.createElement(CalendarDropdown, { onSelect: handleDateSelect, onClose: () =>
-                  setShowCalendar(false), initialDate: selectedDate }) : null
-            )
-          ),
-          React.createElement(Field, { label: "الوقت", required: false },
-            React.createElement(Input, { ref: timeRef, value: time, onChange: handleTimeChange, type: "time",
-              autoFocus: false })
-          )
-        ),
         React.createElement(Field, { label: "ملاحظات" },
           React.createElement(Input, { ref: notesRef, value: notes, onChange: handleNotesChange,
             placeholder: "اختياري...", autoFocus: false })
@@ -3868,7 +3805,6 @@
       );
     });
 
-    // صف العضو
     const MemberRow = React.memo(({
       member,
       idx,
@@ -4018,7 +3954,7 @@
       return true;
     });
 
-    // ─── 12. مكون التنقل الدائري ──────────────────────────────────
+    // ─── 13. مكون التنقل الدائري ──────────────────────────────────
     const CircularNav = React.memo(({ tabs, activeTab, onTabChange }) => {
       return React.createElement("div", { className: "icon-grid" },
         tabs.map((tab) => {
@@ -4033,33 +3969,48 @@
       );
     });
 
-    // ─── 13. مكون الإشعارات ──────────────────────────────────────
-    const NotificationsBell = React.memo(({ membersMap = {}, daysData = {}, members = [], destinations = [], onImageClick }) => {
-      const [showPanel, setShowPanel] = React.useState(false);
-      const [showSecretModal, setShowSecretModal] = React.useState(false);
+    // ─── 14. مكون "بياناتي" (نسخة مطورة تشبه كافة البيانات) ────
+    const MyDataModal = React.memo(({ membersMap, daysData, destinations, onClose, onImageClick }) => {
+      const [step, setStep] = React.useState('secret');
       const [secretInput, setSecretInput] = React.useState('');
       const [secretError, setSecretError] = React.useState('');
       const [verifiedMember, setVerifiedMember] = React.useState(null);
-      const [notifications, setNotifications] = React.useState([]);
-      const [unreadCount, setUnreadCount] = React.useState(0);
+      const [entries, setEntries] = React.useState([]);
+      const [loading, setLoading] = React.useState(false);
 
-      // تحديث الإشعارات بناءً على العضو المحقق
-      React.useEffect(() => {
-        if (!verifiedMember) {
-          setNotifications([]);
-          setUnreadCount(0);
+      // ── التحقق من الرمز ──
+      const handleSecretSubmit = () => {
+        if (!secretInput.trim()) {
+          setSecretError('يرجى إدخال الرمز السري');
           return;
         }
+        let foundMember = null;
+        for (let [name, data] of Object.entries(membersMap)) {
+          if (data.secretCode && data.secretCode === secretInput.trim()) {
+            foundMember = name;
+            break;
+          }
+        }
+        if (foundMember) {
+          setVerifiedMember(foundMember);
+          setSecretError('');
+          fetchMemberData(foundMember);
+        } else {
+          setSecretError('الرمز السري غير صحيح');
+        }
+      };
+
+      // ── جلب بيانات العضو من daysData ──
+      const fetchMemberData = (member) => {
+        setLoading(true);
         const items = [];
-        const dayKeys = Object.keys(daysData);
-        // ترتيب الأيام تنازلياً
-        dayKeys.sort((a, b) => b - a);
-        let count = 0;
+        const dayKeys = Object.keys(daysData).sort((a, b) => Number(a) - Number(b));
+
         for (let dayId of dayKeys) {
           const day = daysData[dayId];
-          const transfers = (day.transfers && day.transfers[verifiedMember]) || [];
-          const deliveries = (day.deliveries && day.deliveries[verifiedMember]) || [];
-          // إضافة التحويلات
+          const transfers = (day.transfers && day.transfers[member]) || [];
+          const deliveries = (day.deliveries && day.deliveries[member]) || [];
+
           transfers.forEach(t => {
             const dateStr = t.entryDate || t.day || '';
             const dayName = getDayNameFromDate(dateStr) || dateStr;
@@ -4072,11 +4023,11 @@
               date: dateStr,
               notes: t.notes || '',
               image: t.image || null,
-              id: t.id
+              id: t.id,
+              timestamp: t.timestamp || 0
             });
-            count++;
           });
-          // إضافة التسليمات
+
           deliveries.forEach(d => {
             const dateStr = d.entryDate || d.day || '';
             const dayName = getDayNameFromDate(dateStr) || dateStr;
@@ -4092,13 +4043,17 @@
               date: dateStr,
               notes: d.notes || '',
               image: d.image || null,
-              id: d.id
+              id: d.id,
+              timestamp: d.timestamp || 0
             });
-            count++;
           });
         }
-        // ترتيب تنازلي حسب الوقت والتاريخ
+
+        // ترتيب تنازلي حسب التاريخ والوقت (الأحدث أولاً)
         items.sort((a, b) => {
+          if (a.timestamp && b.timestamp && a.timestamp !== b.timestamp) {
+            return b.timestamp - a.timestamp;
+          }
           const dateA = a.date ? parseDateStr(a.date) : new Date(0);
           const dateB = b.date ? parseDateStr(b.date) : new Date(0);
           if (dateA > dateB) return -1;
@@ -4107,108 +4062,191 @@
           const timeB = timeToMinutes(b.time || '00:00');
           return timeB - timeA;
         });
-        setNotifications(items);
-        setUnreadCount(count);
-      }, [verifiedMember, daysData, destinations]);
 
-      const handleBellClick = () => {
-        if (!verifiedMember) {
-          setShowSecretModal(true);
-          setSecretInput('');
-          setSecretError('');
-        } else {
-          setShowPanel(!showPanel);
-        }
+        setEntries(items);
+        setLoading(false);
+        setStep('data');
       };
 
-      const handleSecretSubmit = () => {
-        if (!secretInput.trim()) {
-          setSecretError('يرجى إدخال الرمز السري');
-          return;
-        }
-        // البحث عن العضو الذي يطابق الرمز
-        let foundMember = null;
-        for (let [name, data] of Object.entries(membersMap)) {
-          if (data.secretCode && data.secretCode === secretInput.trim()) {
-            foundMember = name;
-            break;
-          }
-        }
-        if (foundMember) {
-          setVerifiedMember(foundMember);
-          setShowSecretModal(false);
-          setSecretError('');
-          setShowPanel(true);
-        } else {
-          setSecretError('الرمز السري غير صحيح');
-        }
-      };
-
-      const handleClosePanel = () => {
-        setShowPanel(false);
-      };
-
+      // ── عرض الصورة في Lightbox ──
       const handleImageClick = (src) => {
         if (onImageClick) onImageClick(src);
       };
 
-      return React.createElement(React.Fragment, null,
-        React.createElement("div", { className: "notification-bell", onClick: handleBellClick, title: "الإشعارات" },
-          React.createElement("span", { style: { fontSize: "24px" } }, "🔔"),
-          unreadCount > 0 ? React.createElement("span", { className: "notification-badge" }, unreadCount) : null
-        ),
-        showSecretModal ? React.createElement("div", { className: "notif-secret-modal", onClick: (e) => { if (e
-                .target === e.currentTarget) setShowSecretModal(false); } },
-          React.createElement("div", { className: "notif-secret-box", onClick: (e) => e.stopPropagation() },
-            React.createElement("h4", null, "🔑 أدخل الرمز السري الخاص بك"),
-            React.createElement(Field, { label: "الرمز السري" },
-              React.createElement(Input, { value: secretInput, onChange: (e) => setSecretInput(e.target.value),
-                type: "password", placeholder: "أدخل الرمز السري", autoFocus: true, onKeyDown: (e) => {
-                  if (e.key === 'Enter') handleSecretSubmit(); } })
-            ),
-            secretError ? React.createElement("div", { style: { color: "#c62828", fontSize: 13,
-                marginBottom: 8 } }, secretError) : null,
-            React.createElement("div", { className: "btn-row" },
-              React.createElement(Btn, { onClick: handleSecretSubmit, variant: "primary" }, "تحقق"),
-              React.createElement(Btn, { onClick: () => setShowSecretModal(false), variant: "ghost" },
-                "إلغاء")
-            )
-          )
-        ) : null,
-        showPanel && verifiedMember ? React.createElement("div", { className: "notification-panel" },
-          React.createElement("div", { className: "notification-panel-header" },
-            React.createElement("h3", null, `📬 إشعارات ${verifiedMember}`),
-            React.createElement("button", { className: "notification-panel-close", onClick: handleClosePanel },
-              "✕")
+      // ── شاشة إدخال الرمز ──
+      const renderSecret = () => {
+        return React.createElement(React.Fragment, null,
+          React.createElement(ModalHeader, { title: "🔑 أدخل الرمز السري الخاص بك", onClose }),
+          React.createElement(Field, { label: "الرمز السري" },
+            React.createElement(Input, {
+              value: secretInput,
+              onChange: (e) => setSecretInput(e.target.value),
+              type: "password",
+              placeholder: "أدخل الرمز السري",
+              autoFocus: true,
+              onKeyDown: (e) => {
+                if (e.key === 'Enter') handleSecretSubmit();
+              }
+            })
           ),
-          notifications.length === 0 ? React.createElement("div", { className: "notification-empty" },
-            "لا توجد إشعارات حالياً") :
-          notifications.map((item, idx) => {
-            const isTransfer = item.type === 'transfer';
-            return React.createElement("div", { key: idx, className: "notification-item" },
-              React.createElement("div", { className: "notif-header" },
-                React.createElement("span", { className: `notif-type ${isTransfer ? 'transfer' :
-                    'delivery'}` }, isTransfer ? "💰 تحويل" : "📦 تسليم"),
-                React.createElement("span", { className: "notif-time" }, item.time ? formatTime(item
-                  .time) : '', item.day ? ` • ${item.day}` : '')
+          secretError ? React.createElement("div", { style: { color: "#c62828", fontSize: 13, marginBottom: 8 } },
+            secretError) : null,
+          React.createElement("div", { className: "btn-row" },
+            React.createElement(Btn, { onClick: handleSecretSubmit, variant: "primary" }, "تحقق"),
+            React.createElement(Btn, { onClick: onClose, variant: "ghost" }, "إلغاء")
+          )
+        );
+      };
+
+      // ── عرض البيانات بشكل جدولي مفصل (مشابه لكافة البيانات) ──
+      const renderData = () => {
+        return React.createElement(React.Fragment, null,
+          React.createElement(ModalHeader, { title: `📊 بيانات ${verifiedMember}`, onClose }),
+          React.createElement("div", { style: { marginBottom: 8, color: "#54738f" } },
+            `عدد العمليات: ${entries.length}`
+          ),
+          entries.length === 0 ?
+          React.createElement("div", { className: "my-data-empty" }, "لا توجد عمليات مسجلة لهذا السائق") :
+          React.createElement("div", { className: "my-data-table-wrap" },
+            React.createElement("table", null,
+              React.createElement("thead", null,
+                React.createElement("tr", null,
+                  React.createElement("th", null, "#"),
+                  React.createElement("th", null, "النوع"),
+                  React.createElement("th", null, "المبلغ"),
+                  React.createElement("th", null, "الجهة"),
+                  React.createElement("th", null, "التاريخ"),
+                  React.createElement("th", null, "اليوم"),
+                  React.createElement("th", null, "الوقت"),
+                  React.createElement("th", null, "الملاحظات"),
+                  React.createElement("th", null, "الصورة")
+                )
               ),
-              React.createElement("div", null,
-                React.createElement("span", { className: "notif-amount" }, item.amount, " ", item
-                  .currency),
-                !isTransfer && item.dest ? React.createElement("span", { className: "notif-dest" },
-                  item.destIcon, " ", item.dest) : null
-              ),
-              item.notes ? React.createElement("div", { style: { fontSize: 12, color: "#78909c" } },
-                item.notes) : null,
-              item.image ? React.createElement("img", { src: item.image, className: "notif-image",
-                onClick: () => handleImageClick(item.image), alt: "صورة" }) : null
-            );
-          })
-        ) : null
+              React.createElement("tbody", null,
+                entries.map((item, idx) => {
+                  const isTransfer = item.type === 'transfer';
+                  const destObj = destinations.find(d => d.name === item.dest);
+                  return React.createElement("tr", { key: item.id || idx },
+                    React.createElement("td", null, idx + 1),
+                    React.createElement("td", null,
+                      React.createElement("span", { className: `type-badge ${isTransfer ? 'transfer' : 'delivery'}` },
+                        isTransfer ? '💰 تحويل' : '📦 تسليم'
+                      )
+                    ),
+                    React.createElement("td", null,
+                      React.createElement("span", { style: { fontWeight: 700, color: isTransfer ? '#c62828' : '#2e7d32' } },
+                        item.amount, " ", item.currency
+                      )
+                    ),
+                    React.createElement("td", null,
+                      item.dest ? React.createElement("span", { className: "dest-chip" },
+                        (destObj ? destObj.icon : '📍'), " ", item.dest
+                      ) : '—'
+                    ),
+                    React.createElement("td", null,
+                      React.createElement("span", { className: "date-chip" },
+                        item.date ? formatDateDisplay(item.date) : '—'
+                      )
+                    ),
+                    React.createElement("td", null, item.day || '—'),
+                    React.createElement("td", null,
+                      React.createElement("span", { className: "time-chip" },
+                        item.time ? formatTime(item.time) : '—'
+                      )
+                    ),
+                    React.createElement("td", null,
+                      React.createElement("span", { className: "entry-notes" },
+                        item.notes || '—'
+                      )
+                    ),
+                    React.createElement("td", null,
+                      item.image ?
+                      React.createElement("img", {
+                        src: item.image,
+                        className: "image-thumb",
+                        onClick: () => handleImageClick(item.image),
+                        alt: "صورة"
+                      }) :
+                      '—'
+                    )
+                  );
+                })
+              )
+            )
+          ),
+          React.createElement("div", { className: "btn-row", style: { marginTop: 12 } },
+            React.createElement(Btn, { onClick: onClose, variant: "ghost" }, "إغلاق")
+          )
+        );
+      };
+
+      return React.createElement(Overlay, { onClose },
+        React.createElement("div", { className: "my-data-modal" },
+          step === 'secret' ? renderSecret() : renderData()
+        )
       );
     });
 
-    // ─── 14. مكون طلب التسليم الكامل ─────────────────────────────
+    // ─── 15. مكون رفع الصورة ──────────────────────────────────────
+    const RequiredImageUpload = React.memo(({ value, onChange, onError, error = false, onImageClick, required = true }) => {
+      const [preview, setPreview] = React.useState(null);
+      const [fileName, setFileName] = React.useState("");
+      const fileInputRef = React.useRef(null);
+      const handleFile = (file) => { if (!file) return; setFileName(file.name); const reader = new FileReader();
+        reader.onload = (ev) => { const img = new Image();
+          img.onload = () => { const canvas = document.createElement('canvas'); let width = img.width,
+              height = img.height; const maxWidth = 1200,
+              maxHeight = 1200; if (width > maxWidth || height > maxHeight) { const ratio = Math.min(maxWidth /
+                width, maxHeight / height);
+              width *= ratio;
+              height *= ratio; }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(img, 0, 0, width, height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+            setPreview(dataUrl);
+            onChange(dataUrl);
+            if (onError) onError(false); };
+          img.src = ev.target.result; };
+        reader.readAsDataURL(file); };
+      const handleFileInput = (e) => { const file = e.target.files[0]; if (!file) return; handleFile(file);
+        e.target.value = ''; };
+      const handleCamera = () => { if (fileInputRef.current) { fileInputRef.current.capture = 'environment';
+          fileInputRef.current.accept = 'image/*';
+          fileInputRef.current.click(); } };
+      const handleGallery = () => { if (fileInputRef.current) { fileInputRef.current.removeAttribute('capture');
+          fileInputRef.current.accept = 'image/*';
+          fileInputRef.current.click(); } };
+      const removeImage = () => { setPreview(null); setFileName(''); onChange(null); if (onError && required)
+          onError(true); };
+      const handlePreviewClick = () => { if (preview && onImageClick) onImageClick(preview); };
+      const showError = required && error && !preview;
+      return React.createElement("div", { className: "image-upload-wrapper" },
+        React.createElement("div", { className: "upload-buttons" },
+          React.createElement("button", { className: "upload-btn", onClick: handleCamera }, React.createElement(
+            "span", { className: "icon" }, "📷"), "تصوير مباشر"),
+          React.createElement("button", { className: "upload-btn", onClick: handleGallery }, React.createElement(
+            "span", { className: "icon" }, "🖼️"), "من الاستوديو"),
+          React.createElement("input", { ref: fileInputRef, type: "file", accept: "image/*", capture: "environment",
+            style: { display: "none" }, onChange: handleFileInput })
+        ),
+        preview ? React.createElement(React.Fragment, null,
+          React.createElement("img", { src: preview, className: "image-preview", alt: "صورة النقود", onClick: 
+              handlePreviewClick, title: "اضغط للتكبير" }),
+          React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" } },
+            React.createElement("span", { className: "image-name" }, `📎 ${fileName}`),
+            React.createElement("button", { className: "remove-image-btn", onClick: removeImage }, "🗑 إزالة")
+          )
+        ) : null,
+        showError ? React.createElement("div", { className: "error-message" }, React.createElement("span",
+          null, "🚨"), "يرجى إدراج صورة النقود") : null
+      );
+    });
+
+    // ─── 16. مكون طلب التسليم الكامل (FullDeliveryModal) ──────
     const FullDeliveryModal = React.memo(({ onClose, members = [], membersMap = [], destinations = [], onSubmit,
         onShowMoneyBubble }) => {
       const STORAGE_KEY = 'fullDeliveryData';
@@ -4226,13 +4264,20 @@
       const [image, setImage] = React.useState(initialData.image || null);
       const [submitting, setSubmitting] = React.useState(false);
       const [imageError, setImageError] = React.useState(false);
-      const [selectedDate, setSelectedDate] = React.useState(initialData.selectedDate || getLiveDateStr());
-      const [showCalendar, setShowCalendar] = React.useState(false);
-      const timeRef = React.useRef(null);
+      const searchRef = React.useRef(null);
+      const secretRef = React.useRef(null);
+      const amtRef = React.useRef(null);
+      const destRef = React.useRef(null);
+      const notesRef = React.useRef(null);
+      const submitBtnRef = React.useRef(null);
+
+      const getMinMax = (currency) => {
+        return { min: 1, max: currency === "$" ? 10000 : 10000000 };
+      };
+
       const saveData = (data) => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (e) {} };
       const clearData = () => { try { localStorage.removeItem(STORAGE_KEY); } catch (e) {} };
-      const updateState = (key, value) => { const newState = { member, search, secret, amt, curr, dest, notes,
-          selectedDate, image };
+      const updateState = (key, value) => { const newState = { member, search, secret, amt, curr, dest, notes, image };
         newState[key] = value;
         setMember(newState.member);
         setSearch(newState.search);
@@ -4241,42 +4286,59 @@
         setCurr(newState.curr);
         setDest(newState.dest);
         setNotes(newState.notes);
-        setSelectedDate(newState.selectedDate);
         setImage(newState.image);
         saveData(newState); };
-      const handleKeyDown = (e, nextRef) => { if (e.key === 'Enter') { e.preventDefault(); if (nextRef && nextRef
-            .current) nextRef.current.focus(); } };
-      const selectMember = (name) => { setMember(name);
-        setSearch(name); const newState = { member: name, search: name, secret, amt, curr, dest, notes,
-          selectedDate, image };
-        saveData(newState); if (document.getElementById('secretRef')) { setTimeout(() => document.getElementById(
-            'secretRef').focus(), 100); } };
+
+      const moveToNext = (nextRef) => {
+        if (nextRef && nextRef.current) {
+          setTimeout(() => nextRef.current.focus(), 50);
+        }
+      };
+
+      const handleKeyDown = (e, nextRef) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          moveToNext(nextRef);
+        }
+      };
+
+      const selectMember = (name) => {
+        setMember(name);
+        setSearch(name);
+        const newState = { member: name, search: name, secret, amt, curr, dest, notes, image };
+        saveData(newState);
+        moveToNext(secretRef);
+      };
+
       const handleImageChange = (dataUrl) => { setImage(dataUrl); const newState = { member, search, secret, amt,
-          curr, dest, notes, selectedDate, image: dataUrl };
+          curr, dest, notes, image: dataUrl };
         saveData(newState); if (dataUrl) setImageError(false); };
       const handleImageError = hasError => setImageError(hasError);
       const handleImageClick = (src) => { if (window.onImageClick) window.onImageClick(src); };
-      const handleDateSelect = (dateStr, dayName) => { setSelectedDate(dateStr); const newState = { member, search,
-          secret, amt, curr, dest, notes, selectedDate: dateStr, image };
-        saveData(newState);
-        setShowCalendar(false); };
-      const toggleCalendar = () => setShowCalendar(!showCalendar);
+
       const submit = () => {
-        if (!member) { alert("اختر العضو"); return; }
+        if (!member) { alert("اختر السائق"); return; }
         if (!secret.trim()) { alert("أدخل الرمز السري"); return; }
         const storedCode = (membersMap[member] && membersMap[member].secretCode) || "";
         if (storedCode !== secret.trim()) { alert("الرمز السري غير صحيح"); return; }
         if (!amt || isNaN(+amt) || +amt <= 0) { alert("المبلغ غير صحيح"); return; }
+        const limits = getMinMax(curr);
+        const num = parseFloat(amt);
+        if (num < limits.min || num > limits.max) {
+          alert(`المبلغ يجب أن يكون بين ${limits.min} و ${limits.max}`);
+          return;
+        }
         if (!image) { setImageError(true);
           alert("🚨 يرجى إدراج صورة النقود"); return; }
-        const selectedTime = timeRef.current ? timeRef.current.value : getLiveTime();
-        const { entryDate, entryDay, journalDate, journalDay } = getJournalAndEntryDates(selectedTime, selectedDate);
+        const time = getLiveTime();
+        const selectedDate = getLiveDateStr();
+        const { entryDate, entryDay, journalDate, journalDay } = getJournalAndEntryDates(time, selectedDate);
         const data = {
           member,
           amount: +amt,
           currency: curr,
           dest,
-          time: selectedTime,
+          time: time,
           day: journalDay || getLiveDayName(),
           entryDay: entryDay || getLiveDayName(),
           entryDate: entryDate || getLiveDateStr(),
@@ -4289,68 +4351,94 @@
         onSubmit(data).then(() => { setSubmitting(false);
           onClose(); if (onShowMoneyBubble) onShowMoneyBubble(); }).catch(() => { setSubmitting(false); });
       };
+
+      const limits = getMinMax(curr);
+
       return React.createElement(Overlay, { onClose },
         React.createElement("div", null,
           React.createElement(ModalHeader, { title: "📤 إجراء تسليم", onClose }),
-          React.createElement(Field, { label: "العضو" },
-            React.createElement(SmartSearchInput, { value: search, onChange: (val) => { setSearch(val);
-                saveData({ ...{ member, search: val, secret, amt, curr, dest, notes, selectedDate,
-                    image } }); }, placeholder: "ابحث عن العضو...", items: members, onSelect: selectMember,
-              autoFocus: true, onKeyDown: e => { if (e.key === 'Enter' && !search) handleKeyDown(e, { current: document
-                    .getElementById('secretRef') }); }, showIcon: true })
+          React.createElement(Field, { label: "السائق" },
+            React.createElement(SmartSearchInput, {
+              inputRef: searchRef,
+              value: search,
+              onChange: (val) => { setSearch(val);
+                saveData({ ...{ member, search: val, secret, amt, curr, dest, notes, image } }); },
+              placeholder: "ابحث عن اسم السائق",
+              items: members,
+              onSelect: selectMember,
+              autoFocus: true,
+              nextRef: secretRef,
+              showIcon: true
+            })
           ),
           React.createElement(Field, { label: "الرمز السري" },
             React.createElement("div", { className: "field-with-toggle" },
-              React.createElement(Input, { id: "secretRef", value: secret, onChange: e => { setSecret(e.target
-                    .value);
+              React.createElement(Input, {
+                ref: secretRef,
+                value: secret,
+                onChange: e => { setSecret(e.target.value);
                   saveData({ ...{ member, search, secret: e.target.value, amt, curr, dest, notes,
-                      selectedDate, image } }); }, type: showSecret ? "text" : "password",
-                placeholder: "أدخل الرمز السري", onKeyDown: e => handleKeyDown(e, { current: document
-                    .querySelector('#amtRef') }), autoFocus: false }),
+                      image } }); },
+                type: showSecret ? "text" : "password",
+                placeholder: "أدخل الرمز السري",
+                onKeyDown: (e) => handleKeyDown(e, amtRef),
+                autoFocus: false
+              }),
               React.createElement("button", { className: "btn-icon", onClick: () => setShowSecret(!showSecret),
                 title: showSecret ? "إخفاء" : "إظهار" }, showSecret ? "🙈" : "👁️‍🗨️")
             )
           ),
           React.createElement(Field, { label: "العملة" },
-            React.createElement(CurrencyToggle, { value: curr, onChange: (val) => { setCurr(val);
-                saveData({ ...{ member, search, secret, amt, curr: val, dest, notes, selectedDate,
-                    image } }); } })
+            React.createElement(CurrencyToggleSwitch, {
+              value: curr,
+              onChange: (val) => { setCurr(val);
+                saveData({ ...{ member, search, secret, amt, curr: val, dest, notes, image } }); }
+            })
           ),
           React.createElement(Field, { label: `المبلغ (${curr})` },
-            React.createElement(Input, { id: "amtRef", value: amt, onChange: e => { setAmt(e.target.value);
-                saveData({ ...{ member, search, secret, amt: e.target.value, curr, dest, notes,
-                    selectedDate, image } }); }, type: "number", placeholder: curr === "$" ? "0.00" :
-                "0", style: { fontSize: 18, fontWeight: 700, color: "#2e7d32" }, onKeyDown: e =>
-                handleKeyDown(e, { current: document.querySelector('#destRef') }), autoFocus: false })
+            React.createElement(AmountInput, {
+              ref: amtRef,
+              value: amt,
+              onChange: (val) => { setAmt(val);
+                saveData({ ...{ member, search, secret, amt: val, curr, dest, notes, image } }); },
+              currency: curr,
+              placeholder: curr === "$" ? "0" : "0",
+              autoFocus: false,
+              min: limits.min,
+              max: limits.max,
+              onKeyDown: (e) => handleKeyDown(e, destRef)
+            })
           ),
           React.createElement(Field, { label: "جهة التسليم" },
-            React.createElement(Select, { id: "destRef", value: dest, onChange: e => { setDest(e.target.value);
+            React.createElement(Select, {
+              ref: destRef,
+              value: dest,
+              onChange: (e) => { setDest(e.target.value);
                 saveData({ ...{ member, search, secret, amt, curr, dest: e.target.value, notes,
-                    selectedDate, image } }); }, onKeyDown: e => handleKeyDown(e, timeRef) },
+                    image } }); },
+              onKeyDown: (e) => handleKeyDown(e, notesRef)
+            },
               React.createElement("option", { value: "" }, "— اختر جهة —"),
-              destinations.map(d => React.createElement("option", { key: d.id, value: d.name }, d.icon + " " +
-                d.name))
+              destinations.map(d => React.createElement("option", { key: d.id, value: d.name }, d.icon + " " + d
+                .name))
             )
-          ),
-          React.createElement(Field, { label: "التاريخ", required: true },
-            React.createElement("div", { className: "calendar-wrapper" },
-              React.createElement("div", { className: "date-picker-trigger", onClick: toggleCalendar },
-                React.createElement("span", { className: "value" }, formatDateDisplay(selectedDate) + " (" + (
-                  getDayNameFromDate(selectedDate) || getLiveDayName()) + ")"),
-                React.createElement("span", { className: "icon" }, "📅")
-              ),
-              showCalendar ? React.createElement(CalendarDropdown, { onSelect: handleDateSelect, onClose: () =>
-                  setShowCalendar(false), initialDate: selectedDate }) : null
-            )
-          ),
-          React.createElement(Field, { label: "الوقت", required: false },
-            React.createElement(Input, { ref: timeRef, type: "time", defaultValue: getLiveTime(),
-              autoFocus: false })
           ),
           React.createElement(Field, { label: "ملاحظات" },
-            React.createElement(Input, { value: notes, onChange: e => { setNotes(e.target.value);
+            React.createElement(Input, {
+              ref: notesRef,
+              value: notes,
+              onChange: (e) => { setNotes(e.target.value);
                 saveData({ ...{ member, search, secret, amt, curr, dest, notes: e.target.value,
-                    selectedDate, image } }); }, placeholder: "اختياري...", autoFocus: false })
+                    image } }); },
+              placeholder: "اختياري...",
+              autoFocus: false,
+              onKeyDown: (e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  if (submitBtnRef.current) submitBtnRef.current.focus();
+                }
+              }
+            })
           ),
           React.createElement(Field, { label: "صورة النقود", required: true, error: imageError ?
               "يرجى إدراج صورة النقود" : null },
@@ -4358,7 +4446,8 @@
                 handleImageError, error: imageError, onImageClick: handleImageClick })
           ),
           React.createElement("div", { className: "btn-row" },
-            React.createElement(Btn, { onClick: submit, variant: "success", disabled: submitting, style: { flex: 1 } },
+            React.createElement(Btn, { ref: submitBtnRef, onClick: submit, variant: "success", disabled: submitting,
+              style: { flex: 1 } },
               submitting ? "جاري..." : "📨 إرسال"),
             React.createElement(Btn, { onClick: onClose, variant: "ghost" }, "إلغاء")
           )
@@ -4366,16 +4455,17 @@
       );
     });
 
-    // ─── 15. التطبيق الرئيسي (App) ──────────────────────────────
+    // ─── 17. التطبيق الرئيسي (App) ──────────────────────────────
     function App() {
       const { state, dispatch } = useStateContext();
 
-      // كشف البيئة وحالة الحجب
       const [isLocked, setIsLocked] = React.useState(false);
       const [lockCodeInput, setLockCodeInput] = React.useState('');
       const [lockError, setLockError] = React.useState('');
       const [isDesktop, setIsDesktop] = React.useState(false);
       const [verifying, setVerifying] = React.useState(false);
+
+      const [showMyData, setShowMyData] = React.useState(false);
 
       React.useEffect(() => {
         const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
@@ -4408,14 +4498,9 @@
           setVerifying(false); });
       };
 
-      // حالات عرض المودالات
       const [showFullDelivery, setShowFullDelivery] = React.useState(false);
       const [showMoneyBubble, setShowMoneyBubble] = React.useState(false);
-      const [activeTab, setActiveTab] = React.useState("accounting");
       const [refreshKey, setRefreshKey] = React.useState(0);
-      const [memberPage, setMemberPage] = React.useState(0);
-      const [loadingMoreMembers, setLoadingMoreMembers] = React.useState(false);
-      const [currentDateStr, setCurrentDateStr] = React.useState(state.selectedDate || getLiveDateStr());
       const [liveTime, setLiveTime] = React.useState(getLiveTime());
       const refreshTimerRef = React.useRef(null);
 
@@ -4426,7 +4511,8 @@
 
       React.useEffect(() => { const interval = setInterval(() => setLiveTime(getLiveTime()), 1000); return () =>
           clearInterval(interval); }, []);
-      React.useEffect(() => { setCurrentDateStr(state.selectedDate || getLiveDateStr()); }, [state.selectedDate]);
+
+      const [lightboxSrc, setLightboxSrc] = React.useState(null);
 
       const addToast = React.useCallback((msg, color, icon, type) => {
         const id = Date.now();
@@ -4469,7 +4555,6 @@
       React.useEffect(() => { return () => { if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current); }; },
         []);
 
-      // متغيرات الحالة
       const members = Array.isArray(state.members) ? state.members : [];
       const membersMap = (state.membersMap && typeof state.membersMap === 'object') ? state.membersMap : {};
       const daysData = (state.daysData && typeof state.daysData === 'object') ? state.daysData : {};
@@ -4486,22 +4571,17 @@
       const toasts = Array.isArray(state.toasts) ? state.toasts : [];
       const isOnline = state.isOnline !== undefined ? !!state.isOnline : true;
       const showOfflineToast = !!state.showOfflineToast;
-      const hasMoreMembers = !!state.hasMoreMembers;
       const showApprovalBubble = !!state.showApprovalBubble;
       const approvalMember = state.approvalMember || '';
       const refreshDebounce = !!state.refreshDebounce;
-      const showCalendar = !!state.showCalendar;
       const cacheReady = !!state.cacheReady;
-
-      // حالة Lightbox
-      const [lightboxSrc, setLightboxSrc] = React.useState(null);
 
       const showMoneyBubbleHandler = React.useCallback(() => {
         setShowMoneyBubble(true);
         setTimeout(() => setShowMoneyBubble(false), 2800);
       }, []);
 
-      // دوال الإضافة والتعديل
+      // دوال الإدارة (مختصرة)
       const handleAddTransfer = React.useCallback((member, entry) => {
         try {
           const targetDate = entry._journalDate || selectedDate;
@@ -4682,12 +4762,6 @@
           addToast("فشل إضافة العضو", "#ef5350", "❌", "error"); }
       }, [members, membersMap, dispatch, addToast]);
 
-      const updateMember = React.useCallback((oldName, newName, code) => {
-        if (oldName === newName) { updateSecret(oldName, code); return; }
-        renameMember(oldName, newName);
-        if (code) { setTimeout(() => updateSecret(newName, code), 200); }
-      }, [renameMember]);
-
       const updateSecret = React.useCallback((member, code) => {
         try {
           const upd = { ...membersMap };
@@ -4822,7 +4896,6 @@
           db.ref(`${DB_PATHS.requests}/${id}`).update(upd);
           db.ref(`${DB_PATHS.days}/${dayId}`).update(updDay);
           addToast(`✅ تم قبول طلب ${req.member}`, "#66bb6a");
-          // إظهار رسالة التأكيد للعضو الذي أرسل الطلب
           const currentUser = localStorage.getItem('octushopper_current_user') || '';
           if (req.member === currentUser || req.member === localStorage.getItem('octushopper_current_user')) {
             dispatch({ type: ACTIONS.SET_APPROVAL_BUBBLE, payload: { show: true, member: req.member } });
@@ -4865,76 +4938,6 @@
       const dayId = getDayIdFromDate(selectedDate);
       const dayData = daysData[dayId] || { transfers: {}, deliveries: {} };
 
-      // دوال الإدارة
-      const handleDateSelect = React.useCallback((dateStr, dayName) => {
-        setCurrentDateStr(dateStr);
-        dispatch({ type: ACTIONS.SET_SELECTED_DATE, payload: dateStr });
-        dispatch({ type: ACTIONS.SET_SHOW_CALENDAR, payload: false });
-        addToast(`📅 تم اختيار التاريخ ${formatDateDisplay(dateStr)} (${dayName})`, "#00695c", "📅");
-      }, [dispatch, addToast]);
-
-      const toggleCalendar = React.useCallback(() => {
-        dispatch({ type: ACTIONS.SET_SHOW_CALENDAR, payload: !showCalendar });
-      }, [showCalendar, dispatch]);
-
-      const handleToggleCollection = React.useCallback((destId, collected) => {
-        const dayId = getDayIdFromDate(selectedDate);
-        dispatch({ type: ACTIONS.UPDATE_COLLECTION, payload: { destId, dayId, collected } });
-        const updatedCollections = { ...collections };
-        if (!updatedCollections[dayId]) updatedCollections[dayId] = {};
-        updatedCollections[dayId][destId] = collected;
-        CacheLibrary.set('collections', updatedCollections);
-        SyncManager.save(DB_PATHS.collections, updatedCollections);
-        addToast(collected ? `✅ تم قبض تسليمات ${destId}` : `❌ إلغاء قبض ${destId}`,
-          collected ? "#66bb6a" : "#ef5350", collected ? "✅" : "❌", collected ? "success" : "error");
-      }, [selectedDate, collections, dispatch, addToast]);
-
-      const handleDeleteDay = React.useCallback(async () => {
-        const dayId = getDayIdFromDate(selectedDate);
-        if (!dayId) {
-          addToast('تاريخ غير صالح', '#ef5350', '❌', 'error');
-          return;
-        }
-        if (!window.confirm(`⚠️ هل أنت متأكد من حذف جميع بيانات يوم ${selectedDate}؟ هذا الإجراء لا يمكن التراجع عنه.`)) {
-          return;
-        }
-        try {
-          dispatch({ type: ACTIONS.SET_LOADING, payload: true });
-          await DayDeletionManager.deleteDayByDate(selectedDate);
-          dispatch({ type: ACTIONS.DELETE_DAY_DATA, payload: dayId });
-          addToast(`تم حذف بيانات يوم ${selectedDate} بنجاح`, '#66bb6a', '✅', 'success');
-          dispatch({ type: ACTIONS.SET_SHOW_CALENDAR, payload: false });
-        } catch (err) {
-          console.error(err);
-          addToast(`فشل حذف اليوم: ${err.message}`, '#ef5350', '❌', 'error');
-        } finally {
-          dispatch({ type: ACTIONS.SET_LOADING, payload: false });
-        }
-      }, [selectedDate, dispatch, addToast]);
-
-      const loadMoreMembers = React.useCallback(() => {
-        if (loadingMoreMembers || !hasMoreMembers) return;
-        setLoadingMoreMembers(true);
-        const nextPage = memberPage + 1;
-        const limit = 20;
-        const offset = nextPage * limit;
-        db.ref(DB_PATHS.members).orderByKey().limitToFirst(offset + limit).once('value')
-          .then(snap => {
-            const data = snap.exists() ? snap.val() : {};
-            const names = Object.keys(data);
-            const total = names.length;
-            const hasMore = total > offset + limit;
-            const newMembers = names.slice(offset, offset + limit);
-            dispatch({ type: ACTIONS.SET_MORE_MEMBERS, payload: newMembers });
-            dispatch({ type: ACTIONS.SET_HAS_MORE_MEMBERS, payload: hasMore });
-            setMemberPage(nextPage);
-            setLoadingMoreMembers(false);
-            CacheLibrary.set('members', data);
-          })
-          .catch(e => { console.warn('Load more members error:', e);
-            setLoadingMoreMembers(false); });
-      }, [loadingMoreMembers, hasMoreMembers, memberPage]);
-
       const totals = React.useMemo(() => {
         try {
           let tU = 0,
@@ -4954,147 +4957,7 @@
         } catch (e) { console.warn('totals error:', e); return { tU: 0, tL: 0, dU: 0, dL: 0, diffU: 0, diffL: 0 }; }
       }, [members, dayData]);
 
-      const firstInfo = React.useMemo(() => {
-        try {
-          const markers = dayMarkers[dayId] || {};
-          const id = markers.first;
-          if (!id) return null;
-          for (let i = 0; i < members.length; i++) {
-            const m = members[i];
-            const tr = (dayData.transfers && dayData.transfers[m]) || [];
-            const dl = (dayData.deliveries && dayData.deliveries[m]) || [];
-            for (let t of tr) { if (t.id === id) return { ...t, member: m }; }
-            for (let d of dl) { if (d.id === id) return { ...d, member: m }; }
-          }
-          return null;
-        } catch (e) { console.warn('firstInfo error:', e); return null; }
-      }, [dayMarkers, dayId, members, dayData]);
-
-      const lastInfo = React.useMemo(() => {
-        try {
-          const markers = dayMarkers[dayId] || {};
-          const id = markers.last;
-          if (!id) return null;
-          for (let i = 0; i < members.length; i++) {
-            const m = members[i];
-            const tr = (dayData.transfers && dayData.transfers[m]) || [];
-            const dl = (dayData.deliveries && dayData.deliveries[m]) || [];
-            for (let t of tr) { if (t.id === id) return { ...t, member: m }; }
-            for (let d of dl) { if (d.id === id) return { ...d, member: m }; }
-          }
-          return null;
-        } catch (e) { console.warn('lastInfo error:', e); return null; }
-      }, [dayMarkers, dayId, members, dayData]);
-
-      const latestInfo = React.useMemo(() => {
-        try {
-          let latest = null,
-            maxT = 0;
-          for (let i = 0; i < members.length; i++) {
-            const m = members[i];
-            const tr = (dayData.transfers && dayData.transfers[m]) || [];
-            const dl = (dayData.deliveries && dayData.deliveries[m]) || [];
-            for (let t of tr) { const ts = t.timestamp || 0; if (ts > maxT) { maxT = ts;
-                latest = { ...t, member: m }; } }
-            for (let d of dl) { const ts = d.timestamp || 0; if (ts > maxT) { maxT = ts;
-                latest = { ...d, member: m }; } }
-          }
-          return latest;
-        } catch (e) { console.warn('latestInfo error:', e); return null; }
-      }, [members, dayData]);
-
-      // دالة حساب درجة المطابقة للبحث الذكي
-      const getMemberSearchScore = React.useCallback((member, query) => {
-        if (!query || !query.trim()) return 0;
-        const normalizedQuery = normalizeString(query.trim());
-        const latinQuery = transliterateArabic(normalizedQuery);
-        const memberNorm = normalizeString(member);
-        const memberLatin = transliterateArabic(memberNorm);
-
-        if (memberNorm === normalizedQuery) return 100;
-        if (memberNorm.startsWith(normalizedQuery)) {
-          const score = 90 + (normalizedQuery.length / memberNorm.length) * 9;
-          return Math.min(score, 99);
-        }
-        if (memberNorm.includes(normalizedQuery)) {
-          const idx = memberNorm.indexOf(normalizedQuery);
-          const bonus = idx === 0 ? 20 : 0;
-          const score = 70 + (normalizedQuery.length / memberNorm.length) * 19 + bonus;
-          return Math.min(score, 89);
-        }
-        if (memberLatin.startsWith(latinQuery)) {
-          const score = 60 + (latinQuery.length / memberLatin.length) * 29;
-          return Math.min(score, 79);
-        }
-        if (memberLatin.includes(latinQuery)) {
-          const idx = memberLatin.indexOf(latinQuery);
-          const bonus = idx === 0 ? 15 : 0;
-          const score = 50 + (latinQuery.length / memberLatin.length) * 19 + bonus;
-          return Math.min(score, 69);
-        }
-        let common = 0,
-          i1 = 0,
-          i2 = 0;
-        while (i1 < memberNorm.length && i2 < normalizedQuery.length) {
-          if (memberNorm[i1] === normalizedQuery[i2]) { common++;
-            i1++;
-            i2++; } else { if (i1 + 1 < memberNorm.length && memberNorm[i1 + 1] === normalizedQuery[i2]) i1++;
-            else if (i2 + 1 < normalizedQuery.length && memberNorm[i1] === normalizedQuery[i2 + 1]) i2++;
-            else { i1++;
-              i2++; } }
-        }
-        const similarity = (common / Math.max(memberNorm.length, normalizedQuery.length)) * 100;
-        if (similarity > 40) return similarity * 0.6;
-        return 0;
-      }, []);
-
-      const getSortedMembers = React.useCallback(() => {
-        try {
-          const searchTerm = filterMember.trim();
-          if (!searchTerm) {
-            const matched = [];
-            const unmatchedWithData = [];
-            const noData = [];
-            for (let i = 0; i < members.length; i++) {
-              const m = members[i];
-              const s = stats(dayData, m);
-              if (s.ok) matched.push(m);
-              else if (s.hasData) unmatchedWithData.push(m);
-              else noData.push(m);
-            }
-            return matched.concat(unmatchedWithData).concat(noData);
-          }
-
-          const scored = members.map(m => {
-            const score = getMemberSearchScore(m, searchTerm);
-            const s = stats(dayData, m);
-            return { member: m, score, hasData: s.hasData, ok: s.ok };
-          });
-
-          const filtered = scored.filter(item => item.score > 0);
-          filtered.sort((a, b) => {
-            if (a.score !== b.score) return b.score - a.score;
-            if (a.ok && !b.ok) return -1;
-            if (!a.ok && b.ok) return 1;
-            if (a.hasData && !b.hasData) return -1;
-            if (!a.hasData && b.hasData) return 1;
-            return a.member.localeCompare(b.member);
-          });
-
-          const zeroScore = scored.filter(item => item.score === 0);
-          if (filtered.length === 0) {
-            const withData = zeroScore.filter(s => s.hasData).map(s => s.member);
-            const withoutData = zeroScore.filter(s => !s.hasData).map(s => s.member);
-            return withData.concat(withoutData);
-          }
-          return filtered.map(item => item.member);
-        } catch (e) {
-          console.warn('getSortedMembers error:', e);
-          return members.slice();
-        }
-      }, [members, dayData, filterMember, getMemberSearchScore]);
-
-      // ========== عرض المستخدم العادي ==========
+      // واجهة المستخدم
       const UserView = React.memo(() =>
         React.createElement("div", { className: "card card-blue", style: { maxWidth: 600, margin: "20px auto" } },
           React.createElement("h3", { style: { color: "#0d47a1", marginBottom: 16, textAlign: "center" } },
@@ -5108,10 +4971,17 @@
         )
       );
 
-      // ========== الهيدر (تم تثبيته) ==========
-      const Header = React.memo(() =>
-        React.createElement("div", { className: "header" },
+      // Header
+      const Header = React.memo(() => {
+        const handleBellClick = () => {
+          addToast("🔔 سيتم تفعيل الإشعارات قريباً", "#ffa726", "🔔", "warning");
+        };
+
+        return React.createElement("div", { className: "header" },
           React.createElement("div", { className: "header-left" },
+            React.createElement("button", { className: "my-data-btn", onClick: () => setShowMyData(true) },
+              React.createElement("span", null, "👤"), "بياناتي"
+            ),
             React.createElement("div", { className: "header-title" },
               React.createElement("h1", null, "🖥️ نظام المحاسبة")
             )
@@ -5119,16 +4989,18 @@
           React.createElement("div", { className: "header-right" },
             React.createElement(ConnectionStatus, { isOnline }),
             React.createElement("span", { className: "live-clock", title: "الوقت الحالي" },
-              `⏰ ${formatTime(liveTime)}`),
-            React.createElement(NotificationsBell, { membersMap, daysData, members, destinations, onImageClick: setLightboxSrc }),
+              `⏰ ${formatTime(liveTime)}`
+            ),
+            React.createElement("span", { className: "bell-placeholder", onClick: handleBellClick, title: "الإشعارات (قريباً)" },
+              "🔔"
+            ),
             React.createElement("button", { className: "btn-icon", onClick: handleRefresh, disabled: refreshDebounce,
               title: refreshDebounce ? "يرجى الانتظار" : "تحديث البيانات (يحافظ على المدخلات)", style: { fontSize: 20,
                 opacity: refreshDebounce ? 0.5 : 1 } }, refreshDebounce ? "⏳" : "🚀")
           )
-        )
-      );
+        );
+      });
 
-      // ========== شاشة التحميل ==========
       if (!cacheReady) {
         return React.createElement("div", { className: "app" },
           React.createElement(Header, null),
@@ -5145,7 +5017,6 @@
         );
       }
 
-      // ========== التصيير النهائي ==========
       if (isDesktop && isLocked) {
         return React.createElement("div", { className: "lock-screen" },
           React.createElement("div", { className: "lock-box" },
@@ -5164,10 +5035,16 @@
         );
       }
 
-      // إخفاء لوحة الإدارة بالكامل - عرض فقط واجهة المستخدم العادي
       return React.createElement("div", { className: "app" },
         React.createElement(Header, null),
         React.createElement(UserView, null),
+        showMyData ? React.createElement(MyDataModal, {
+          membersMap,
+          daysData,
+          destinations,
+          onClose: () => setShowMyData(false),
+          onImageClick: setLightboxSrc
+        }) : null,
         showFullDelivery ? React.createElement(FullDeliveryModal, { onClose: () => setShowFullDelivery(false),
           members, membersMap, destinations, onSubmit: submitRequest, onShowMoneyBubble: showMoneyBubbleHandler }) :
         null,
@@ -5191,7 +5068,7 @@
       );
     }
 
-    // ─── 16. تشغيل التطبيق ──────────────────────────────────────
+    // ─── 18. تشغيل التطبيق ──────────────────────────────────────
     const Root = () =>
       React.createElement(StateProvider, null,
         React.createElement(App, null)
