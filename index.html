@@ -1,0 +1,2069 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0" />
+<title>تطبيق السائق - OctuShopper</title>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<!-- ✅ NEW: Babel for Weather JSX -->
+<script src="https://unpkg.com/@babel/standalone@7.23.5/babel.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #f0f4f8;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, Arial, sans-serif;
+    min-height: 100vh;
+    color: #1e293b;
+    touch-action: pan-y;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Layout */
+  .app-container { width: 100%; max-width: 600px; margin: 0 auto; min-height: 100vh; background: #fff; display: flex; flex-direction: column; position: relative; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.05); }
+  
+  /* Header */
+  .app-header { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: linear-gradient(135deg, #ffcc80, #ffb74d); position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .menu-btn { font-size: 24px; cursor: pointer; color: #4e342e; padding: 4px; }
+  .header-title h1 { font-size: 18px; color: #4e342e; font-weight: 800; }
+  .header-title p { font-size: 12px; color: #6d4c41; font-weight: 600; }
+  .header-right { display: flex; align-items: center; gap: 8px; }
+  
+  /* Notification Bell */
+  .notif-btn { position: relative; font-size: 22px; cursor: pointer; padding: 4px; background: rgba(255,255,255,0.5); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; transition: 0.2s; flex-shrink: 0; }
+  .notif-btn:active { transform: scale(0.9); }
+  .notif-badge { position: absolute; top: 0; right: 0; background: #c62828; color: #fff; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2px solid #ffcc80; }
+  .user-badge { background: rgba(255,255,255,0.7); padding: 6px 10px; border-radius: 20px; font-weight: 700; font-size: 13px; color: #004d40; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+
+  /* Weather Widget */
+  .weather-widget { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.7); padding: 4px 10px; border-radius: 20px; cursor: pointer; transition: 0.2s; position: relative; }
+  .weather-widget:hover { background: rgba(255,255,255,0.9); }
+  .weather-widget .w-icon { font-size: 18px; }
+  .weather-widget .w-temp { font-weight: 800; font-size: 13px; color: #4e342e; font-family: monospace; }
+  .weather-widget .w-close { background: none; border: none; color: #c62828; font-size: 12px; font-weight: bold; cursor: pointer; padding: 0 2px; margin-right: 2px; }
+  
+  /* Side Menu */
+  .side-menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+  .side-menu-overlay.open { opacity: 1; pointer-events: auto; }
+  .side-menu { position: fixed; top: 0; right: 0; bottom: 0; width: 280px; background: #ffffff; z-index: 1001; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: -5px 0 25px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+  .side-menu.open { transform: translateX(0); }
+  .menu-header { padding: 20px; background: linear-gradient(135deg, #00695c, #004d40); color: white; display: flex; align-items: center; gap: 12px; }
+  .menu-header .avatar { width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+  .menu-header .info h3 { font-size: 16px; margin-bottom: 4px; }
+  .menu-header .info p { font-size: 12px; opacity: 0.8; }
+  .menu-items { flex: 1; padding: 16px 8px; overflow-y: auto; }
+  .menu-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 12px; cursor: pointer; transition: 0.2s; color: #1e293b; font-weight: 600; margin-bottom: 4px; }
+  .menu-item:hover, .menu-item.active { background: #e0f2f1; color: #00695c; }
+  .menu-item .icon { font-size: 20px; width: 24px; text-align: center; }
+  .menu-footer { padding: 16px; border-top: 1px solid #eee; }
+  .logout-btn { width: 100%; padding: 12px; border-radius: 10px; border: none; background: #ffebee; color: #c62828; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+  /* Main Content */
+  .main-content { flex: 1; padding: 16px; overflow-y: auto; background: #f8fafc; }
+  
+  /* Dashboard (Main View) */
+  .welcome-banner { background: linear-gradient(135deg, #e0f2f1, #b2dfdb); border-radius: 16px; padding: 24px; text-align: center; margin-bottom: 24px; }
+  .welcome-banner h2 { color: #004d40; font-size: 22px; margin-bottom: 8px; }
+  .welcome-banner p { color: #00796b; font-size: 14px; font-weight: 500; }
+  .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .action-card { background: #fff; border-radius: 20px; padding: 24px 16px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); cursor: pointer; transition: 0.3s; border: 2px solid transparent; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .action-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+  .action-card.delivery { border-color: #c8e6c9; }
+  .action-card.delivery:hover { border-color: #2e7d32; }
+  .action-card.alert { border-color: #ffcdd2; }
+  .action-card.alert:hover { border-color: #c62828; }
+  .action-icon { width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+  .action-icon.green { background: linear-gradient(135deg, #43a047, #2e7d32); }
+  .action-icon.red { background: linear-gradient(135deg, #e53935, #c62828); }
+  .action-card span { font-weight: 700; font-size: 15px; color: #1e293b; }
+
+  /* Date Navigator (Inside Details View) */
+  .date-nav-container { background: #fff; padding: 12px 16px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 12px; overflow: hidden; margin-bottom: 16px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  .time-display { display: flex; align-items: center; gap: 6px; background: #ffe0b2; color: #e65100; font-weight: 800; font-size: 14px; padding: 6px 10px; border-radius: 8px; border: 1px solid #ffb74d; white-space: nowrap; }
+  .days-scroll-container { display: flex; gap: 8px; overflow-x: auto; scroll-behavior: smooth; padding: 4px 0; flex: 1; scrollbar-width: none; }
+  .days-scroll-container::-webkit-scrollbar { display: none; }
+  .day-pill { min-width: 50px; height: 50px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fff; border: 2px solid #ffcc80; cursor: pointer; transition: 0.3s; flex-shrink: 0; }
+  .day-pill .d-num { font-size: 16px; font-weight: 800; color: #4e342e; }
+  .day-pill .d-name { font-size: 9px; font-weight: 600; color: #6d4c41; margin-top: 2px; }
+  .day-pill.active { background: #00695c; border-color: #004d40; transform: scale(1.1); box-shadow: 0 4px 10px rgba(0,105,92,0.3); }
+  .day-pill.active .d-num, .day-pill.active .d-name { color: #fff; }
+  .calendar-trigger { position: relative; display: flex; align-items: center; justify-content: center; background: #f1f5f9; width: 44px; height: 44px; border-radius: 12px; cursor: pointer; color: #475569; font-size: 20px; flex-shrink: 0; }
+  .calendar-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .current-date-text { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; min-width: 80px; }
+  .current-date-text .c-date { font-size: 14px; font-weight: 800; color: #1e293b; }
+  .current-date-text .c-day { font-size: 11px; font-weight: 600; color: #64748b; }
+
+  /* Tabs */
+  .tabs-bar { display: flex; gap: 6px; overflow-x: auto; padding: 6px 0; margin-bottom: 12px; scrollbar-width: none; }
+  .tabs-bar::-webkit-scrollbar { display: none; }
+  .tab-btn { flex: 1; min-width: 100px; padding: 10px 8px; border-radius: 12px; border: 2px solid rgba(0,0,0,.06); background: rgba(255,255,255,.6); cursor: pointer; font-family: inherit; font-weight: 700; font-size: 12px; color: #546e7a; transition: .2s; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .tab-btn .tab-icon { font-size: 20px; }
+  .tab-btn.active { background: #00695c; color: #fff; border-color: #004d40; box-shadow: 0 4px 12px rgba(0,105,92,.3); }
+
+  /* List Items */
+  .list-item { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border-right: 4px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+  .list-item.transfer { border-right-color: #c62828; }
+  .list-item.delivery { border-right-color: #2e7d32; }
+  .list-item.alert { border-right-color: #ffa726; }
+  .list-item.pending { border-right-color: #ffa726; background: #fffaf0; }
+  .list-item.rejected { border-right-color: #c62828; background: linear-gradient(135deg, rgba(255, 235, 238, .9), rgba(255, 255, 255, .9)); }
+  .list-item.collected { border-right-color: #2e7d32; background: linear-gradient(135deg, rgba(232, 245, 233, .9), rgba(255, 255, 255, .9)); }
+  
+  .item-info { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .item-title { font-weight: 700; font-size: 14px; color: #1e293b; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .item-details { font-size: 12px; color: #64748b; display: flex; align-items: center; gap: 6px; }
+  .badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 700; }
+  .badge.pending { background: #fff3e0; color: #e65100; }
+  .badge.approved { background: #e8f5e9; color: #2e7d32; }
+  .badge.rejected { background: #ffebee; color: #c62828; }
+  .badge.collected { background: #e8f5e9; color: #1b5e20; border: 1px solid #66bb6a; }
+  .badge.uncollected { background: #fff3e0; color: #e65100; border: 1px solid #ffb74d; }
+  
+  .item-amount { display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; color: #1e293b; text-align: left; min-width: 60px;}
+  .item-amount small { display: block; font-size: 10px; font-weight: 600; margin-top: 4px; color: #94a3b8; }
+  .item-amount.usd { color: #2e7d32; }
+  .item-amount.lbp { color: #f57c00; }
+  
+  /* 🖼️ الصورة المصغرة */
+  .item-thumb { width: 32px; height: 32px; border-radius: 6px; cursor: pointer; object-fit: cover; border: 2px solid #e2e8f0; margin-top: 8px; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  .item-thumb:hover { transform: scale(1.1); border-color: #00695c; }
+
+  /* ID Badge */
+  .id-badge { font-family: monospace; font-weight: 800; padding: 4px 10px; border-radius: 6px; font-size: 12px; display: inline-block; text-align: center; min-width: 60px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  .id-badge.in { background: #e3f2fd; color: #0d47a1; border: 1px solid #90caf9; }
+  .id-badge.out { background: #ffebee; color: #b71c1c; border: 1px solid #ef9a9a; }
+
+  /* Dest Summary Card */
+  .dest-card { padding: 12px; border-radius: 12px; background: rgba(255,255,255,.85); margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,.05); cursor: pointer; transition: .2s; border: 2px solid transparent; }
+  .dest-card:hover { border-color: #00695c; transform: translateY(-2px); }
+  .dest-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .dest-name { font-weight: 800; font-size: 14px; color: #004d40; display: flex; align-items: center; gap: 6px; }
+  .dest-count-badge { padding: 2px 8px; border-radius: 10px; background: rgba(0,105,92,.15); color: #004d40; font-size: 11px; font-weight: 700; }
+  .dest-amounts { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+  .dest-usd { color: #2e7d32; font-weight: 800; font-family: monospace; font-size: 13px; }
+  .dest-lbp { color: #f57c00; font-weight: 800; font-family: monospace; font-size: 13px; }
+  .dest-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 8px; padding: 8px; background: rgba(0,0,0,.03); border-radius: 8px; }
+  .dest-stat { text-align: center; font-size: 11px; }
+  .dest-stat .lbl { color: #78909c; font-weight: 600; margin-bottom: 2px; }
+  .dest-stat .val { font-weight: 800; font-family: monospace; font-size: 12px; }
+  .dest-stat .val.total { color: #0d47a1; }
+  .dest-stat .val.collected { color: #2e7d32; }
+  .dest-stat .val.pending { color: #e65100; }
+
+  /* Detail item */
+  .detail-item { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; background: rgba(0,0,0,.03); margin-top: 6px; flex-wrap: wrap; }
+  .detail-item.collected { background: linear-gradient(135deg,rgba(232,245,233,.9),rgba(255,255,255,.6)); border: 1px solid #66bb6a; }
+  .detail-item .item-info { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; flex: 1; min-width: 0; }
+  .detail-item .item-amount { font-family: monospace; font-weight: 800; font-size: 13px; color: #2e7d32; }
+  .detail-item .item-date { font-size: 10px; color: #78909c; font-family: monospace; }
+  .detail-item .item-status { padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 800; white-space: nowrap; }
+
+  /* Modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .modal-content { background: #fff; width: 100%; max-width: 420px; border-radius: 24px; padding: 24px; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s ease; }
+  @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .modal-header h3 { color: #004d40; font-size: 18px; font-weight: 800; }
+  .close-btn { background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 16px; cursor: pointer; color: #64748b; display: flex; align-items: center; justify-content: center; }
+
+  /* Notifications Detailed */
+  .notif-item { padding:12px; border-radius:10px; background:rgba(255,255,255,.9); border-right:4px solid #ccc; margin-bottom:8px; display:flex; flex-direction:column; gap:6px; box-shadow:0 2px 8px rgba(0,0,0,.05); cursor:pointer; }
+  .notif-item.unread { background:linear-gradient(135deg,rgba(227,242,253,.9),rgba(255,255,255,.9)) }
+  .notif-item.approved { border-right-color:#2e7d32 }
+  .notif-item.rejected { border-right-color:#c62828 }
+  .notif-item.pending { border-right-color:#ff9800 }
+  .notif-item.alert { border-right-color:#c62828 }
+  .notif-item .notif-head { display:flex; justify-content:space-between; align-items:center; gap:8px }
+  .notif-item .notif-title { font-weight:800; font-size:13px; color:#1e293b }
+  .notif-item .notif-time { font-size:10px; color:#90a4ae; font-family:monospace; white-space:nowrap }
+  .notif-item .notif-msg { font-size:12px; color:#54738f; line-height:1.5 }
+  .notif-item .notif-del { background:rgba(198,40,40,.08); border:1px solid rgba(198,40,40,.2); color:#c62828; border-radius:6px; padding:3px 10px; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; align-self:flex-start; margin-top:4px;}
+  .notif-item .notif-del:hover { background:rgba(198,40,40,.18) }
+  
+  /* Empty State & Lightbox */
+  .empty-state { text-align: center; padding: 40px 20px; color: #94a3b8; }
+  .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-state p { font-weight: 600; }
+  .lightbox{position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;padding:20px;}
+  .lightbox img{max-width:92vw;max-height:88vh;border-radius:10px;object-fit:contain}
+  .lightbox-close{position:fixed;top:16px;right:16px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+  /* Form Elements & Buttons */
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 12px; font-weight: 700; color: #455a64; margin-bottom: 8px; }
+  .form-control { width: 100%; padding: 14px; border-radius: 12px; border: 2px solid #e2e8f0; font-size: 16px; font-family: inherit; font-weight: 600; color: #1e293b; background: #f8fafc; outline: none; transition: 0.2s; }
+  .form-control:focus { border-color: #00695c; background: #fff; box-shadow: 0 0 0 4px rgba(0,105,92,0.1); }
+  .currency-toggle { display: flex; background: #f1f5f9; border-radius: 12px; padding: 4px; margin-bottom: 16px; }
+  .currency-btn { flex: 1; padding: 10px; border: none; background: transparent; border-radius: 8px; font-weight: 800; font-size: 14px; color: #64748b; cursor: pointer; transition: 0.2s; }
+  .currency-btn.active { background: #fff; color: #00695c; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+  .submit-btn { width: 100%; padding: 16px; border-radius: 14px; border: none; background: linear-gradient(135deg, #00695c, #2e7d32); color: #fff; font-size: 16px; font-weight: 800; cursor: pointer; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(0,105,92,0.3); transition: 0.2s; }
+  .submit-btn:active { transform: scale(0.98); }
+  .submit-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+  .btn-ghost { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 10px 16px; border-radius: 10px; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 14px; }
+  .cancel-btn { margin-top: 8px; background: #ffebee; border: none; color: #c62828; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: 0.2s;}
+  .cancel-btn:hover { background: #ffcdd2; }
+  
+  /* Image Upload */
+  .image-upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .upload-btn { padding: 14px; border-radius: 12px; border: 2px dashed #cbd5e1; background: #f8fafc; color: #64748b; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; transition: 0.2s; }
+  .upload-btn:hover { border-color: #00695c; color: #00695c; background: #e0f2f1; }
+  .image-preview { width: 100%; max-height: 150px; object-fit: contain; border-radius: 12px; margin-top: 10px; border: 1px solid #e2e8f0; }
+
+  /* Option Buttons */
+  .option-grid { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+  .option-btn { display: flex; align-items: center; gap: 16px; padding: 20px; border-radius: 16px; border: 2px solid #e2e8f0; background: #fff; cursor: pointer; transition: 0.2s; text-align: right; }
+  .option-btn:hover { border-color: #00695c; background: #f0fdf4; transform: scale(1.02); }
+  .option-btn .icon { font-size: 32px; }
+  .option-btn .text h4 { font-size: 16px; color: #1e293b; margin-bottom: 4px; }
+  .option-btn .text p { font-size: 12px; color: #64748b; }
+
+  /* Countdown Timer */
+  .timer-circle { width: 100px; height: 100px; border-radius: 50%; border: 4px solid #ffcdd2; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: 800; color: #c62828; margin: 0 auto 20px; transition: 0.3s; }
+  .timer-circle.ready { border-color: #2e7d32; color: #2e7d32; animation: pulseReady 1s infinite; }
+  @keyframes pulseReady { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+  /* Toast */
+  .toast-container { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; align-items: center; width: 90%; max-width: 400px; pointer-events: none; }
+  .toast { background: #fff; padding: 14px 20px; border-radius: 12px; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border-right: 4px solid #66bb6a; pointer-events: auto; animation: slideUpToast 0.3s ease; width: 100%; }
+  @keyframes slideUpToast { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .toast.error { border-right-color: #ef5350; }
+  .toast.warning { border-right-color: #ffa726; }
+
+  /* Login */
+  .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; background: #f0f4f8;}
+  .login-card { background: #fff; border-radius: 24px; padding: 28px 22px; width: 100%; max-width: 440px; box-shadow: 0 24px 80px rgba(0,0,0,.1); }
+  .login-logo { font-size: 64px; text-align: center; margin-bottom: 8px; }
+  .login-title { text-align: center; color: #1e293b; font-size: 22px; font-weight: 900; margin-bottom: 4px; }
+  .login-sub { text-align: center; color: #78909c; font-size: 12px; margin-bottom: 22px; }
+  .login-btn { width: 100%; padding: 14px; border-radius: 14px; border: none; background: linear-gradient(145deg,#2e7d32,#1b5e20); color: #fff; font-size: 16px; font-weight: 800; cursor: pointer; transition: .3s; box-shadow: 0 6px 24px rgba(46,125,50,.4); display: flex; align-items: center; justify-content: center; gap: 10px; font-family: inherit; }
+  .login-btn:disabled { opacity: .5; cursor: not-allowed; }
+  .search-wrap{position:relative;width:100%}
+  .search-wrap input{width:100%;padding:10px 36px 10px 14px;border-radius:10px;border:2px solid rgba(0,0,0,.08);background:rgba(255,255,255,.95);font-family:inherit;font-size:14px;outline:0}
+  .search-wrap input:focus{border-color:#00695c;box-shadow:0 0 0 3px rgba(0,105,92,.12)}
+  .search-wrap .search-icon{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:16px;color:#90a4ae;pointer-events:none}
+  .search-results{position:absolute;top:100%;right:0;left:0;margin-top:4px;background:#fff;border-radius:10px;max-height:180px;overflow-y:auto;z-index:20;box-shadow:0 8px 24px rgba(0,0,0,.15);border:1px solid rgba(0,0,0,.06)}
+  .search-results .item{padding:10px 14px;cursor:pointer;font-size:14px;border-bottom:1px solid rgba(0,0,0,.04);transition:.15s}
+  .search-results .item:hover,.search-results .item.selected{background:rgba(224,242,241,.7)}
+
+  /* Remember Me Checkbox */
+  .remember-me-container { display: flex; align-items: center; gap: 8px; margin-top: 12px; margin-bottom: 20px; cursor: pointer; user-select: none; }
+  .remember-me-container input { width: 18px; height: 18px; accent-color: #2e7d32; cursor: pointer; }
+  .remember-me-container label { font-size: 14px; font-weight: 600; color: #455a64; cursor: pointer; }
+
+  /* ═══════════════════════════════════════════════════════════
+     WEATHER SYSTEM STYLES  ✅ (prefixed to avoid conflicts)
+     ═══════════════════════════════════════════════════════════ */
+  @keyframes wSpin { to { transform: rotate(360deg); } }
+  @keyframes wFloatIcon { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  @keyframes wRainFall { 0% { transform: translateY(-10vh); opacity: 0; } 10% { opacity: 1; } 100% { transform: translateY(110vh); opacity: 0.3; } }
+  @keyframes wFadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes wSlideDown { from { opacity: 0; transform: translateX(-50%) translateY(-30px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+  /* Rain Effect */
+  .rain-effect-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 3; overflow: hidden; opacity: 0.65; }
+  .rain-drop { position: absolute; top: -20px; width: 2px; height: 18px; background: linear-gradient(180deg, transparent 0%, rgba(41, 182, 246, 0.85) 60%, rgba(2, 136, 209, 0.95) 100%); border-radius: 0 0 2px 2px; animation: wRainFall linear infinite; filter: drop-shadow(0 0 2px rgba(41, 182, 246, 0.6)); }
+  .rain-splash { position: absolute; bottom: 0; left: 0; right: 0; height: 40px; background: linear-gradient(0deg, rgba(41, 182, 246, 0.15), transparent); pointer-events: none; }
+
+  /* Weather Screen */
+  .weather-screen-overlay { position: fixed; inset: 0; z-index: 9600; background: linear-gradient(160deg, #e1f5fe 0%, #b3e5fc 40%, #81d4fa 100%); overflow-y: auto; padding: 20px 16px 40px; animation: wFadeInUp 0.4s ease; direction: rtl; }
+  .weather-screen-overlay::before { content: ''; position: fixed; inset: 0; background-image: radial-gradient(circle at 15% 20%, rgba(255,255,255,0.5) 0%, transparent 45%), radial-gradient(circle at 85% 80%, rgba(255,255,255,0.35) 0%, transparent 45%); pointer-events: none; z-index: 0; }
+  .weather-screen-container { max-width: 900px; margin: 0 auto; position: relative; z-index: 1; padding-bottom: 20px; }
+  .weather-screen-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; position: sticky; top: 0; z-index: 20; background: linear-gradient(180deg, rgba(225, 245, 254, 0.98), rgba(179, 229, 252, 0.95)); padding: 8px 4px; border-radius: 16px; backdrop-filter: blur(12px); box-shadow: 0 4px 16px rgba(13, 71, 161, 0.1); }
+  .weather-back-btn { background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(41, 182, 246, 0.4); color: #0277bd; padding: 8px 16px; border-radius: 22px; cursor: pointer; font-family: inherit; font-weight: 800; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(13, 71, 161, 0.12); transition: all 0.2s; }
+  .weather-back-btn:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(13, 71, 161, 0.2); }
+  .weather-screen-title { color: #01579b; font-size: 17px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+  .weather-search-box { display: flex; gap: 8px; background: rgba(255, 255, 255, 0.85); border-radius: 20px; padding: 6px; border: 1px solid rgba(41, 182, 246, 0.35); margin-bottom: 12px; backdrop-filter: blur(8px); box-shadow: 0 4px 16px rgba(13, 71, 161, 0.08); }
+  .weather-search-box input { flex: 1; background: transparent; border: none; outline: none; padding: 10px 14px; font-family: inherit; font-size: 14px; color: #0d47a1; font-weight: 600; }
+  .weather-search-box input::placeholder { color: #90a4ae; font-weight: 500; }
+  .weather-search-btn { background: linear-gradient(135deg, #29b6f6, #0288d1); color: #fff; border: none; padding: 10px 20px; border-radius: 16px; font-family: inherit; font-weight: 800; cursor: pointer; font-size: 13px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(41, 182, 246, 0.35); white-space: nowrap; }
+  .weather-search-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(41, 182, 246, 0.5); }
+  .weather-search-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+  .weather-location-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+  .weather-loc-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 18px; background: rgba(255, 255, 255, 0.85); border: 1px solid rgba(41, 182, 246, 0.3); color: #0277bd; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; backdrop-filter: blur(8px); }
+  .weather-loc-btn:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 6px 16px rgba(13, 71, 161, 0.15); }
+  .weather-loc-btn.primary { background: linear-gradient(135deg, rgba(41, 182, 246, 0.9), rgba(2, 136, 209, 0.9)); color: #fff; border-color: transparent; box-shadow: 0 4px 14px rgba(41, 182, 246, 0.4); }
+  .weather-loc-btn.primary:hover { box-shadow: 0 8px 24px rgba(41, 182, 246, 0.55); }
+  .weather-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 16px; }
+  .weather-spinner { width: 46px; height: 46px; border: 4px solid rgba(255, 255, 255, 0.5); border-top-color: #0288d1; border-radius: 50%; animation: wSpin 0.8s linear infinite; }
+  .weather-loading p { color: #0277bd; font-size: 13px; font-weight: 700; }
+  .weather-error { background: rgba(198, 40, 40, 0.08); border: 1px solid rgba(198, 40, 40, 0.25); color: #c62828; padding: 12px 16px; border-radius: 12px; font-size: 13px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; animation: wFadeInUp 0.3s ease; }
+  .weather-hero-card { background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(227, 242, 253, 0.85)); backdrop-filter: blur(20px); border-radius: 24px; padding: 24px 22px; margin-bottom: 16px; border: 1px solid rgba(255, 255, 255, 0.7); box-shadow: 0 12px 40px rgba(13, 71, 161, 0.15), 0 0 0 1px rgba(100, 181, 246, 0.15) inset; position: relative; overflow: hidden; animation: wFadeInUp 0.5s ease; }
+  .weather-hero-card::before { content: ''; position: absolute; top: -60%; left: -30%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(41, 182, 246, 0.12) 0%, transparent 70%); border-radius: 50%; pointer-events: none; }
+  .weather-hero-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; position: relative; z-index: 1; gap: 12px; flex-wrap: wrap; }
+  .weather-loc-info h2 { font-size: 18px; font-weight: 800; color: #01579b; display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+  .weather-loc-info .date-time { font-size: 11px; color: #54738f; font-weight: 600; }
+  .weather-icon-main { font-size: 68px; line-height: 1; animation: wFloatIcon 3s ease-in-out infinite; filter: drop-shadow(0 4px 12px rgba(13, 71, 161, 0.2)); }
+  .weather-hero-main { display: flex; align-items: flex-end; gap: 16px; margin-bottom: 20px; position: relative; z-index: 1; }
+  .weather-temp-big { font-size: 72px; font-weight: 900; line-height: 0.9; color: #0d47a1; letter-spacing: -4px; font-family: monospace; text-shadow: 0 2px 12px rgba(13, 71, 161, 0.15); }
+  .weather-temp-unit { font-size: 20px; font-weight: 700; color: #54738f; margin-top: 12px; margin-right: 4px; }
+  .weather-desc-group { padding-bottom: 8px; }
+  .weather-desc-main { font-size: 16px; font-weight: 800; color: #0d47a1; margin-bottom: 4px; }
+  .weather-feels-like { font-size: 12px; color: #54738f; font-weight: 600; }
+  .weather-details-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 14px; position: relative; z-index: 1; }
+  .weather-detail-item { background: rgba(255, 255, 255, 0.75); border-radius: 14px; padding: 12px 8px; text-align: center; border: 1px solid rgba(100, 181, 246, 0.3); transition: transform 0.2s; }
+  .weather-detail-item:hover { transform: translateY(-3px); }
+  .weather-detail-item .d-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+  .weather-detail-item .d-label { font-size: 10px; color: #54738f; font-weight: 700; margin-bottom: 3px; }
+  .weather-detail-item .d-value { font-size: 14px; color: #0d47a1; font-weight: 800; }
+  .weather-section-header { display: flex; align-items: center; gap: 8px; margin: 22px 4px 12px; color: #01579b; font-size: 14px; font-weight: 800; }
+  .weather-section-header .s-icon { font-size: 18px; }
+  .weather-hourly-scroll { display: flex; gap: 8px; overflow-x: auto; padding: 6px 4px 12px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+  .weather-hourly-scroll::-webkit-scrollbar { height: 4px; }
+  .weather-hourly-scroll::-webkit-scrollbar-thumb { background: rgba(41, 182, 246, 0.4); border-radius: 3px; }
+  .weather-hourly-card { flex: 0 0 78px; scroll-snap-align: start; background: rgba(255, 255, 255, 0.85); border: 1px solid rgba(100, 181, 246, 0.3); border-radius: 16px; padding: 12px 8px; text-align: center; transition: all 0.2s; box-shadow: 0 2px 8px rgba(13, 71, 161, 0.06); }
+  .weather-hourly-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(13, 71, 161, 0.12); }
+  .weather-hourly-card.now { background: linear-gradient(145deg, rgba(41, 182, 246, 0.2), rgba(2, 136, 209, 0.15)); border-color: rgba(2, 136, 209, 0.5); }
+  .weather-hourly-card .h-time { font-size: 10px; color: #54738f; font-weight: 700; margin-bottom: 6px; }
+  .weather-hourly-card .h-icon { font-size: 22px; display: block; margin-bottom: 4px; }
+  .weather-hourly-card .h-temp { font-size: 14px; color: #0d47a1; font-weight: 800; margin-bottom: 3px; }
+  .weather-hourly-card .h-rain { font-size: 10px; color: #0288d1; font-weight: 700; }
+  .weather-daily-list { display: flex; flex-direction: column; gap: 8px; }
+  .weather-daily-card { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: rgba(255, 255, 255, 0.85); border: 1px solid rgba(100, 181, 246, 0.25); border-radius: 16px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(13, 71, 161, 0.05); }
+  .weather-daily-card:hover { background: #fff; transform: translateX(-3px); box-shadow: 0 6px 18px rgba(13, 71, 161, 0.12); }
+  .weather-daily-card.today { background: linear-gradient(135deg, rgba(41, 182, 246, 0.15), rgba(2, 136, 209, 0.1)); border-color: rgba(2, 136, 209, 0.4); }
+  .weather-daily-day { flex: 0 0 70px; }
+  .weather-daily-day .dname { font-size: 13px; color: #0d47a1; font-weight: 800; margin-bottom: 2px; }
+  .weather-daily-day .ddate { font-size: 10px; color: #54738f; font-weight: 600; }
+  .weather-daily-icon { flex: 0 0 36px; text-align: center; font-size: 26px; line-height: 1; }
+  .weather-daily-info { flex: 1; min-width: 0; }
+  .weather-daily-info .desc { font-size: 12px; color: #37474f; font-weight: 700; margin-bottom: 3px; }
+  .weather-daily-info .rain-info { font-size: 10px; color: #0288d1; font-weight: 700; display: flex; gap: 8px; align-items: center; }
+  .weather-daily-temps { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-end; }
+  .weather-daily-temps .hi { font-size: 15px; color: #0d47a1; font-weight: 800; }
+  .weather-daily-temps .lo { font-size: 12px; color: #54738f; font-weight: 600; }
+  .weather-rain-chart { display: flex; align-items: flex-end; justify-content: space-around; height: 110px; gap: 8px; padding: 10px 12px; background: rgba(255, 255, 255, 0.85); border-radius: 16px; border: 1px solid rgba(100, 181, 246, 0.25); box-shadow: 0 2px 8px rgba(13, 71, 161, 0.05); }
+  .weather-rain-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 4px; }
+  .weather-rain-bar-val { font-size: 10px; color: #0288d1; font-weight: 800; white-space: nowrap; }
+  .weather-rain-bar { width: 100%; max-width: 36px; background: linear-gradient(180deg, #4fc3f7, #0288d1); border-radius: 6px 6px 2px 2px; min-height: 4px; transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 2px 8px rgba(2, 136, 209, 0.25); }
+  .weather-rain-labels { display: flex; justify-content: space-around; margin-top: 8px; padding: 0 12px; }
+  .weather-rain-label { font-size: 10px; color: #54738f; font-weight: 700; text-align: center; flex: 1; }
+
+  @media (max-width: 768px) {
+    .weather-temp-big { font-size: 56px; }
+    .weather-icon-main { font-size: 56px; }
+    .weather-details-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 480px) {
+    .weather-screen-overlay { padding: 12px 10px 30px; }
+    .weather-temp-big { font-size: 48px; letter-spacing: -2px; }
+    .weather-icon-main { font-size: 48px; }
+    .weather-hero-card { padding: 18px 14px; }
+    .weather-loc-info h2 { font-size: 15px; }
+  }
+
+  @media (max-width:600px){
+    .tab-btn{min-width:90px;padding:8px 6px}
+    .tab-btn .tab-icon{font-size:18px}
+    .tab-btn{font-size:11px}
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- ✅ WEATHER COMPONENTS (Babel JSX) — loads AFTER main app  -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<script type="text/babel" data-presets="react">
+(function() {
+  const { useState, useEffect, useCallback, memo } = React;
+
+  const WeatherService = {
+    _cache: { data: null, timestamp: 0 },
+    cacheDuration: 10 * 60 * 1000,
+    _inflight: null,
+
+    WEATHER_CODES: {
+      0:{desc:'سماء صافية',icon:'☀️',theme:'clear',rain:false},
+      1:{desc:'صافٍ غالباً',icon:'🌤️',theme:'clear',rain:false},
+      2:{desc:'غائم جزئياً',icon:'⛅',theme:'clouds',rain:false},
+      3:{desc:'غائم',icon:'☁️',theme:'clouds',rain:false},
+      45:{desc:'ضباب',icon:'🌫️',theme:'fog',rain:false},
+      48:{desc:'ضباب متجمد',icon:'🌫️',theme:'fog',rain:false},
+      51:{desc:'رذاذ خفيف',icon:'🌦️',theme:'rain',rain:true},
+      53:{desc:'رذاذ متوسط',icon:'🌦️',theme:'rain',rain:true},
+      55:{desc:'رذاذ كثيف',icon:'🌧️',theme:'rain',rain:true},
+      56:{desc:'رذاذ متجمد خفيف',icon:'🌧️',theme:'rain',rain:true},
+      57:{desc:'رذاذ متجمد كثيف',icon:'🌧️',theme:'rain',rain:true},
+      61:{desc:'مطر خفيف',icon:'🌦️',theme:'rain',rain:true},
+      63:{desc:'مطر متوسط',icon:'🌧️',theme:'rain',rain:true},
+      65:{desc:'مطر غزير',icon:'🌧️',theme:'rain',rain:true},
+      66:{desc:'مطر متجمد خفيف',icon:'🌧️',theme:'rain',rain:true},
+      67:{desc:'مطر متجمد غزير',icon:'🌧️',theme:'rain',rain:true},
+      71:{desc:'ثلوج خفيفة',icon:'🌨️',theme:'snow',rain:false},
+      73:{desc:'ثلوج متوسطة',icon:'🌨️',theme:'snow',rain:false},
+      75:{desc:'ثلوج كثيفة',icon:'❄️',theme:'snow',rain:false},
+      77:{desc:'حبيبات ثلجية',icon:'🌨️',theme:'snow',rain:false},
+      80:{desc:'زخات مطر خفيفة',icon:'🌦️',theme:'rain',rain:true},
+      81:{desc:'زخات مطر متوسطة',icon:'🌧️',theme:'rain',rain:true},
+      82:{desc:'زخات مطر غزيرة',icon:'⛈️',theme:'storm',rain:true},
+      85:{desc:'زخات ثلجية خفيفة',icon:'🌨️',theme:'snow',rain:false},
+      86:{desc:'زخات ثلجية كثيفة',icon:'❄️',theme:'snow',rain:false},
+      95:{desc:'عاصفة رعدية',icon:'⛈️',theme:'storm',rain:true},
+      96:{desc:'عاصفة رعدية ببرد',icon:'⛈️',theme:'storm',rain:true},
+      99:{desc:'عاصفة رعدية شديدة',icon:'⛈️',theme:'storm',rain:true}
+    },
+
+    getInfo(code) {
+      return this.WEATHER_CODES[code] || { desc:'غير معروف', icon:'🌡️', theme:'clouds', rain:false };
+    },
+
+    async geocode(cityName) {
+      const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=ar&format=json`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('فشل البحث عن المدينة');
+      const data = await res.json();
+      if (!data.results || data.results.length === 0) throw new Error('لم يتم العثور على المدينة');
+      const r = data.results[0];
+      return { lat: r.latitude, lon: r.longitude, name: `${r.name}${r.country ? '، ' + r.country : ''}` };
+    },
+
+    async fetchWeather(lat, lon) {
+      const params = new URLSearchParams({
+        latitude: lat, longitude: lon,
+        current: 'temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index,is_day',
+        hourly: 'temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,relative_humidity_2m,uv_index',
+        daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,uv_index_max,sunrise,sunset',
+        timezone: 'auto', forecast_days: 5, wind_speed_unit: 'kmh'
+      });
+      const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
+      if (!res.ok) throw new Error('فشل جلب بيانات الطقس');
+      return res.json();
+    },
+
+    async reverseGeocode(lat, lon) {
+      try {
+        const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ar`);
+        if (!res.ok) return null;
+        const gd = await res.json();
+        const city = gd.city || gd.locality || gd.principalSubdivision;
+        if (!city) return null;
+        return gd.countryName ? `${city}، ${gd.countryName}` : city;
+      } catch (e) { return null; }
+    },
+
+    async getCurrentLocationWeather(forceRefresh = false) {
+      if (!forceRefresh && this._cache.data && (Date.now() - this._cache.timestamp < this.cacheDuration)) {
+        return this._cache.data;
+      }
+      if (this._inflight) return this._inflight;
+
+      const promise = new Promise((resolve, reject) => {
+        const fallback = () => this.fetchAndCache(33.8938, 35.5018, 'بيروت، لبنان').then(resolve).catch(reject);
+        if (!navigator.geolocation) { fallback(); return; }
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
+            try {
+              const { latitude, longitude } = pos.coords;
+              let name = `${latitude.toFixed(2)}°, ${longitude.toFixed(2)}°`;
+              const rev = await this.reverseGeocode(latitude, longitude);
+              if (rev) name = rev;
+              resolve(await this.fetchAndCache(latitude, longitude, name));
+            } catch (e) { reject(e); }
+          },
+          () => fallback(),
+          { enableHighAccuracy: false, timeout: 8000, maximumAge: 600000 }
+        );
+      });
+      this._inflight = promise.finally(() => { this._inflight = null; });
+      return this._inflight;
+    },
+
+    async fetchAndCache(lat, lon, name) {
+      const data = await this.fetchWeather(lat, lon);
+      const result = { data, lat, lon, name, timestamp: Date.now() };
+      this._cache = { data: result, timestamp: Date.now() };
+      return result;
+    },
+
+    clearCache() {
+      this._cache = { data: null, timestamp: 0 };
+      this._inflight = null;
+    },
+
+    isRainingToday(weatherData) {
+      if (!weatherData || !weatherData.data) return false;
+      const d = weatherData.data;
+      if (d.current && this.getInfo(d.current.weather_code).rain) return true;
+      if (d.daily && d.daily.weather_code && d.daily.weather_code[0] !== undefined) {
+        if (this.getInfo(d.daily.weather_code[0]).rain) return true;
+      }
+      return false;
+    }
+  };
+
+  function useRainToday(refreshMs = 20 * 60 * 1000) {
+    const [rainToday, setRainToday] = useState(false);
+    useEffect(() => {
+      let cancelled = false;
+      const check = async () => {
+        try {
+          const data = await WeatherService.getCurrentLocationWeather();
+          if (!cancelled) setRainToday(WeatherService.isRainingToday(data));
+        } catch (e) {}
+      };
+      check();
+      const interval = setInterval(check, refreshMs);
+      return () => { cancelled = true; clearInterval(interval); };
+    }, [refreshMs]);
+    return rainToday;
+  }
+
+  const RainEffect = memo(({ show, count = 50 }) => {
+    if (!show) return null;
+    const drops = [];
+    for (let i = 0; i < count; i++) {
+      drops.push({
+        left: Math.random() * 100,
+        delay: Math.random() * 2,
+        duration: 0.6 + Math.random() * 0.7,
+        opacity: 0.35 + Math.random() * 0.5
+      });
+    }
+    return (
+      <div className="rain-effect-overlay">
+        {drops.map((d, i) => (
+          <div key={i} className="rain-drop" style={{
+            left: `${d.left}%`,
+            animationDelay: `${d.delay}s`,
+            animationDuration: `${d.duration}s`,
+            opacity: d.opacity
+          }} />
+        ))}
+        <div className="rain-splash" />
+      </div>
+    );
+  });
+
+  const WeatherScreen = memo(({ onClose }) => {
+    const [weather, setWeather] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [cityInput, setCityInput] = useState('');
+    const [searching, setSearching] = useState(false);
+
+    const loadByCoords = useCallback(async (lat, lon, name, force = false) => {
+      setLoading(true); setError('');
+      try {
+        if (force) WeatherService.clearCache();
+        setWeather(await WeatherService.fetchAndCache(lat, lon, name));
+      } catch (e) {
+        setError(e.message || 'تعذر تحميل بيانات الطقس');
+      } finally { setLoading(false); }
+    }, []);
+
+    const loadCurrentLocation = useCallback(async (force = false) => {
+      setLoading(true); setError('');
+      try {
+        if (force) WeatherService.clearCache();
+        setWeather(await WeatherService.getCurrentLocationWeather(force));
+      } catch (e) {
+        setError('تعذر تحديد موقعك. حاول البحث يدوياً.');
+        try {
+          setWeather(await WeatherService.fetchAndCache(33.8938, 35.5018, 'بيروت، لبنان'));
+          setError('');
+        } catch (e2) {}
+      } finally { setLoading(false); }
+    }, []);
+
+    useEffect(() => { loadCurrentLocation(); }, [loadCurrentLocation]);
+
+    const handleSearch = async () => {
+      const city = cityInput.trim();
+      if (!city) { setError('الرجاء إدخال اسم مدينة'); return; }
+      setSearching(true); setError('');
+      try {
+        const loc = await WeatherService.geocode(city);
+        setCityInput('');
+        await loadByCoords(loc.lat, loc.lon, loc.name, true);
+      } catch (e) {
+        setError(e.message || 'لم يتم العثور على المدينة');
+      } finally { setSearching(false); }
+    };
+
+    const handleKeyDown = (e) => { if (e.key === 'Enter') handleSearch(); };
+    const rainToday = weather && WeatherService.isRainingToday(weather);
+
+    const renderContent = () => {
+      if (loading) {
+        return (
+          <div className="weather-loading">
+            <div className="weather-spinner" />
+            <p>🌐 جاري جلب بيانات الطقس...</p>
+          </div>
+        );
+      }
+      if (!weather) {
+        return (
+          <div className="weather-loading">
+            <div style={{fontSize:48}}>🌤️</div>
+            <p>لا توجد بيانات. حاول البحث عن مدينة.</p>
+          </div>
+        );
+      }
+
+      const d = weather.data;
+      const c = d.current;
+      const info = WeatherService.getInfo(c.weather_code);
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+      const dateStr = now.toLocaleDateString('ar-EG', { weekday: 'long', day: 'numeric', month: 'long' });
+
+      return (
+        <>
+          <div className={`weather-hero-card weather-${info.theme}`}>
+            <div className="weather-hero-top">
+              <div className="weather-loc-info">
+                <h2><span>📍</span> {weather.name}</h2>
+                <div className="date-time">{dateStr} — {timeStr}</div>
+              </div>
+              <div className="weather-icon-main">{info.icon}</div>
+            </div>
+            <div className="weather-hero-main">
+              <div style={{display:'flex',alignItems:'flex-start'}}>
+                <span className="weather-temp-big">{Math.round(c.temperature_2m)}</span>
+                <span className="weather-temp-unit">°C</span>
+              </div>
+              <div className="weather-desc-group">
+                <div className="weather-desc-main">{info.desc}</div>
+                <div className="weather-feels-like">محسوس {Math.round(c.apparent_temperature)}°</div>
+              </div>
+            </div>
+            <div className="weather-details-grid">
+              <div className="weather-detail-item">
+                <span className="d-icon">💧</span>
+                <div className="d-label">الرطوبة</div>
+                <div className="d-value">{c.relative_humidity_2m}%</div>
+              </div>
+              <div className="weather-detail-item">
+                <span className="d-icon">💨</span>
+                <div className="d-label">الرياح</div>
+                <div className="d-value">{Math.round(c.wind_speed_10m)} كم/س</div>
+              </div>
+              <div className="weather-detail-item">
+                <span className="d-icon">🌧️</span>
+                <div className="d-label">هطول</div>
+                <div className="d-value">{(c.precipitation||0).toFixed(1)} مم</div>
+              </div>
+              <div className="weather-detail-item">
+                <span className="d-icon">☀️</span>
+                <div className="d-label">UV</div>
+                <div className="d-value">{c.uv_index != null ? c.uv_index.toFixed(1) : '—'}</div>
+              </div>
+            </div>
+          </div>
+
+          {(() => {
+            const maxRain = Math.max(...d.daily.precipitation_sum.map(v => v || 0), 0.1);
+            return (
+              <>
+                <div className="weather-section-header">
+                  <span className="s-icon">🌧️</span> توقعات هطول الأمطار (5 أيام)
+                </div>
+                <div>
+                  <div className="weather-rain-chart">
+                    {d.daily.time.slice(0,5).map((t,i) => {
+                      const amount = d.daily.precipitation_sum[i] || 0;
+                      const h = Math.max((amount/maxRain)*100, 4);
+                      return (
+                        <div key={i} className="weather-rain-bar-wrap">
+                          <div className="weather-rain-bar-val">{amount.toFixed(1)} مم</div>
+                          <div className="weather-rain-bar" style={{height:`${h}%`}} />
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="weather-rain-labels">
+                    {d.daily.time.slice(0,5).map((t,i) => {
+                      const dn = i === 0 ? 'اليوم' : new Date(t).toLocaleDateString('ar-EG', { weekday: 'short' });
+                      return <span key={i} className="weather-rain-label">{dn}</span>;
+                    })}
+                  </div>
+                </div>
+              </>
+            );
+          })()}
+
+          <div className="weather-section-header">
+            <span className="s-icon">🕐</span> التوقعات الساعية — اليوم
+          </div>
+          <div className="weather-hourly-scroll">
+            {(() => {
+              const items = [];
+              const today = new Date().toISOString().slice(0,10);
+              let startIdx = 0;
+              for (let i = 0; i < d.hourly.time.length; i++) {
+                const t = new Date(d.hourly.time[i]);
+                if (t.toISOString().slice(0,10) === today && t.getHours() === now.getHours()) {
+                  startIdx = i; break;
+                }
+              }
+              for (let i = startIdx; i < Math.min(startIdx + 24, d.hourly.time.length); i++) {
+                const t = new Date(d.hourly.time[i]);
+                const isNow = i === startIdx;
+                const infoH = WeatherService.getInfo(d.hourly.weather_code[i]);
+                const tempH = Math.round(d.hourly.temperature_2m[i]);
+                const rainP = d.hourly.precipitation_probability[i] || 0;
+                items.push(
+                  <div key={i} className={`weather-hourly-card${isNow ? ' now' : ''}`}>
+                    <div className="h-time">
+                      {isNow ? 'الآن' : t.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                    <span className="h-icon">{infoH.icon}</span>
+                    <div className="h-temp">{tempH}°</div>
+                    <div className="h-rain">{rainP > 0 ? `💧${rainP}%` : '—'}</div>
+                  </div>
+                );
+              }
+              return items;
+            })()}
+          </div>
+
+          <div className="weather-section-header">
+            <span className="s-icon">📅</span> توقعات 5 أيام قادمة
+          </div>
+          <div className="weather-daily-list">
+            {d.daily.time.slice(0,5).map((t,i) => {
+              const infoD = WeatherService.getInfo(d.daily.weather_code[i]);
+              const hi = Math.round(d.daily.temperature_2m_max[i]);
+              const lo = Math.round(d.daily.temperature_2m_min[i]);
+              const rainP = d.daily.precipitation_probability_max[i] || 0;
+              const rainA = d.daily.precipitation_sum[i] || 0;
+              const dayLabel = i === 0 ? 'اليوم' : (i === 1 ? 'غداً' : new Date(t).toLocaleDateString('ar-EG', { weekday: 'long' }));
+              const dateLabel = new Date(t).toLocaleDateString('ar-EG', { day: 'numeric', month: 'short' });
+              return (
+                <div key={i} className={`weather-daily-card${i === 0 ? ' today' : ''}`}>
+                  <div className="weather-daily-day">
+                    <div className="dname">{dayLabel}</div>
+                    <div className="ddate">{dateLabel}</div>
+                  </div>
+                  <div className="weather-daily-icon">{infoD.icon}</div>
+                  <div className="weather-daily-info">
+                    <div className="desc">{infoD.desc}</div>
+                    <div className="rain-info">
+                      <span>💧 {rainP}%</span>
+                      <span>{rainA.toFixed(1)} مم</span>
+                    </div>
+                  </div>
+                  <div className="weather-daily-temps">
+                    <span className="hi">{hi}°</span>
+                    <span className="lo">{lo}°</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      );
+    };
+
+    return (
+      <div className="weather-screen-overlay">
+        <RainEffect show={rainToday} />
+        <div className="weather-screen-container">
+          <div className="weather-screen-header">
+            <button className="weather-back-btn" onClick={onClose}>
+              <span>←</span> رجوع
+            </button>
+            <div className="weather-screen-title">
+              <span>🌤️</span> حالة الطقس
+            </div>
+          </div>
+
+          <div className="weather-search-box">
+            <input
+              type="text" value={cityInput}
+              onChange={(e) => setCityInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="ابحث عن مدينة..."
+            />
+            <button className="weather-search-btn" onClick={handleSearch} disabled={searching}>
+              {searching ? '⏳' : '🔍 بحث'}
+            </button>
+          </div>
+
+          <div className="weather-location-actions">
+            <button className="weather-loc-btn primary" onClick={() => loadCurrentLocation(true)}>
+              <span>📍</span> موقعي الحالي
+            </button>
+            <button
+              className="weather-loc-btn"
+              onClick={() => loadByCoords(33.8938, 35.5018, 'بيروت، لبنان', true)}
+            >
+              <span>🏠</span> افتراضي
+            </button>
+          </div>
+
+          {error && (
+            <div className="weather-error"><span>⚠️</span> {error}</div>
+          )}
+
+          {renderContent()}
+        </div>
+      </div>
+    );
+  });
+
+  // ✅ Expose to window so main app can use them
+  window.WeatherService = WeatherService;
+  window.RainEffect = RainEffect;
+  window.WeatherScreen = WeatherScreen;
+  window.useRainToday = useRainToday;
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- MAIN DRIVER APP (original code, adjusted)                  -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<script>
+// ==========================================
+// 1. إعدادات Firebase والدوال المساعدة
+// ==========================================
+const FIREBASE_CONFIG = { apiKey: "AIzaSyDSnsl1z1S9oBnmKVEI_X1K_FxNqhjsH-I", authDomain: "business-account-6354e.firebaseapp.com", databaseURL: "https://business-account-6354e-default-rtdb.firebaseio.com", projectId: "business-account-6354e", storageBucket: "business-account-6354e.firebasestorage.app", messagingSenderId: "788545656766", appId: "1:788545656766:web:c2106889dc842a0bb80bef", measurementId: "G-ZHT93Q2BSL" };
+if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+const db = firebase.database();
+const DB_PATHS = { members: 'members', destinations: 'destinations', days: 'days', requests: 'requests', disabled: 'disabled', collections: 'collections' };
+
+const DAYS_AR = [{ id: 1, ar: "الإثنين" }, { id: 2, ar: "الثلاثاء" }, { id: 3, ar: "الأربعاء" }, { id: 4, ar: "الخميس" }, { id: 5, ar: "الجمعة" }, { id: 6, ar: "السبت" }, { id: 7, ar: "الأحد" }];
+
+function uid() { return 'req-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6); }
+function getLiveDateStr() { const d = new Date(); return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear(); }
+function getLiveTime() { const d = new Date(); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
+function formatTime(t) { if (!t) return ""; const p = t.split(':').map(Number); if (p.length < 2) return t; return ((p[0] % 12) || 12) + ':' + String(p[1]).padStart(2, '0') + ' ' + (p[0] >= 12 ? 'م' : 'ص'); }
+function formatNumber(value) { if (!value) return '0'; return parseFloat(value).toLocaleString('en-US', { maximumFractionDigits: 2 }); }
+function normalizeArabic(str) { if (!str) return ''; return str.normalize('NFD').replace(/[\u064B-\u065F]/g, '').replace(/[أإآ]/g, 'ا').replace(/[ة]/g, 'ه').replace(/[ئ]/g, 'ي').replace(/[ؤ]/g, 'و').trim().toLowerCase(); }
+function transliterateArabic(text) { if (!text) return ''; const map = {'ا':'a','أ':'a','إ':'a','آ':'a','ب':'b','ت':'t','ث':'th','ج':'j','ح':'h','خ':'kh','د':'d','ذ':'dh','ر':'r','ز':'z','س':'s','ش':'sh','ص':'s','ض':'d','ط':'t','ظ':'z','ع':'a','غ':'gh','ف':'f','ق':'q','ك':'k','ل':'l','م':'m','ن':'n','ه':'h','و':'w','ي':'y','ة':'h','ى':'a','ئ':'y','ؤ':'w'}; return text.split('').map(ch => map[ch] || ch).join(''); }
+function getMatchScore(name, searchTerm) {
+  const normName = normalizeArabic(name); const normTerm = normalizeArabic(searchTerm);
+  if (!normTerm) return { score: 0, type: 'none', label: '' };
+  if (normName === normTerm) return { score: 100, type: 'exact', label: 'تطابق تام' };
+  if (normName.startsWith(normTerm)) return { score: 90, type: 'partial', label: 'بداية الاسم' };
+  if (normName.includes(normTerm)) return { score: 80, type: 'partial', label: 'تطابق جزئي' };
+  const transName = transliterateArabic(normName); const transTerm = transliterateArabic(normTerm);
+  if (transName === transTerm) return { score: 70, type: 'partial', label: 'تطابق صوتي' };
+  if (transName.startsWith(transTerm)) return { score: 65, type: 'partial', label: 'بداية صوتية' };
+  if (transName.includes(transTerm)) return { score: 60, type: 'partial', label: 'تطابق صوتي جزئي' };
+  return { score: 0, type: 'none', label: '' };
+}
+function compressImage(base64Str, maxWidth = 800, quality = 0.7) {
+  return new Promise((resolve) => {
+    if (!base64Str || base64Str.length < 50000) { resolve(base64Str); return; }
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let width = img.width; let height = img.height;
+      if (width > maxWidth) { height = Math.round((height * maxWidth) / width); width = maxWidth; }
+      canvas.width = width; canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = base64Str;
+  });
+}
+function parseDateStr(dateStr) { if (!dateStr) return null; const p = dateStr.split('/'); if (p.length !== 3) return null; return new Date(parseInt(p[2]), parseInt(p[1]) - 1, parseInt(p[0])); }
+function getEntryTimestamp(entry) { 
+  if (!entry) return 0; 
+  if (typeof entry.timestamp === 'number' && entry.timestamp > 0) return entry.timestamp; 
+  try { 
+    const d = parseDateStr(entry.entryDate || entry.date || ''); 
+    if (d) { 
+      const p = (entry.time || '00:00').split(':'); 
+      d.setHours(parseInt(p[0] || '0', 10), parseInt(p[1] || '0', 10), 0, 0); 
+      return d.getTime(); 
+    } 
+  } catch (e) {} 
+  return 0; 
+}
+function getDayNameFromDate(dateStr) {
+  if (!dateStr) return '';
+  const p = dateStr.split('/');
+  if (p.length !== 3) return '';
+  const d = new Date(parseInt(p[2]), parseInt(p[1]) - 1, parseInt(p[0]));
+  if (isNaN(d.getTime())) return '';
+  const idx = d.getDay();
+  const id = idx === 0 ? 7 : idx;
+  const f = DAYS_AR.find(x => x.id === id);
+  return f ? f.ar : '';
+}
+function getDaysArray(centerDateStr, range = 10) {
+  const p = centerDateStr.split('/');
+  const centerDate = new Date(parseInt(p[2]), parseInt(p[1]) - 1, parseInt(p[0]));
+  const days = [];
+  for (let i = -range; i <= range; i++) {
+    const d = new Date(centerDate);
+    d.setDate(d.getDate() + i);
+    const ds = String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear();
+    days.push({ dateStr: ds, dayNum: d.getDate(), dayName: getDayNameFromDate(ds), isToday: ds === getLiveDateStr() });
+  }
+  return days;
+}
+
+function getDayIdFromDate(dateStr) {
+  if (!dateStr) return getLiveDateStr();
+  const p = dateStr.split('/');
+  if (p.length !== 3) return getLiveDateStr();
+  return p[2] + '-' + p[1].padStart(2, '0') + '-' + p[0].padStart(2, '0');
+}
+function dayKeyToDateStr(dayKey) {
+  const p = (dayKey || '').split('-');
+  if (p.length !== 3) return '';
+  return p[2] + '/' + p[1] + '/' + p[0];
+}
+function formatDateDisplay(dateStr) {
+  if (!dateStr) return '';
+  const p = dateStr.split('/');
+  if (p.length !== 3) return dateStr;
+  return p[0] + '/' + p[1] + '/' + p[2];
+}
+function encodeItemKey(rawId) {
+  if (!rawId) return 'EMPTY';
+  try {
+    const encoded = btoa(unescape(encodeURIComponent(String(rawId))));
+    return encoded.replace(/[./#$\[\]]/g, '_');
+  } catch (e) {
+    return String(rawId).replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 200);
+  }
+}
+function compareEntriesByDateTimeDesc(a, b) {
+  const dateA = getDayIdFromDate(a.entryDate || '');
+  const dateB = getDayIdFromDate(b.entryDate || '');
+  if (dateA !== dateB) return dateB.localeCompare(dateA);
+  const tA = timeToMinutes(a.time || '00:00');
+  const tB = timeToMinutes(b.time || '00:00');
+  if (tA !== tB) return tB - tA;
+  return ((b.id || '')).localeCompare((a.id || ''));
+}
+function sortChronologicallyDesc(items) {
+  return (items || []).slice().sort(compareEntriesByDateTimeDesc);
+}
+function timeToMinutes(t) {
+  if (!t) return 0;
+  const p = t.split(':');
+  if (p.length < 2) return 0;
+  return parseInt(p[0]) * 60 + parseInt(p[1]);
+}
+
+function getNotifKey(member) { return 'octushopper_driver_notifs_' + member; }
+function loadNotifs(member) {
+  try { const raw = localStorage.getItem(getNotifKey(member)); if (!raw) return []; const p = JSON.parse(raw); return Array.isArray(p) ? p : []; } catch (e) { return []; }
+}
+function saveNotifs(member, notifs) {
+  try { localStorage.setItem(getNotifKey(member), JSON.stringify(notifs || [])); } catch (e) {}
+}
+
+function buildSequenceMaps(daysData, requests) {
+  const transfers = []; const deliveries = [];
+  Object.keys(daysData || {}).forEach(dayKey => {
+    const day = daysData[dayKey]; if (!day) return;
+    Object.keys(day.transfers || {}).forEach(m => (day.transfers[m] || []).forEach(e => transfers.push({ id: e.id, ts: getEntryTimestamp(e), ct: e.timestamp || 0 })));
+    Object.keys(day.deliveries || {}).forEach(m => (day.deliveries[m] || []).forEach(e => deliveries.push({ id: e.id, ts: getEntryTimestamp(e), ct: e.timestamp || 0, source: 'delivery' })));
+  });
+  Object.keys(requests || {}).forEach(id => {
+    const r = requests[id]; if (!r || r.status !== 'pending') return;
+    deliveries.push({ id: r.id, ts: getEntryTimestamp(r), ct: r.timestamp || 0, source: 'request' });
+  });
+  const cmpAsc = (a, b) => {
+    if (a.ts !== b.ts) return a.ts - b.ts;
+    if (a.ct !== b.ct) return a.ct - b.ct;
+    return (a.id || '').localeCompare(b.id || '');
+  };
+  transfers.sort(cmpAsc); deliveries.sort(cmpAsc);
+  const map = {};
+  transfers.forEach((e, i) => { if (e.id) map[e.id] = { seqNum: i + 1, label: 'out ' + (i + 1), prefix: 'out', type: 'transfer' }; });
+  deliveries.forEach((e, i) => { if (e.id) map[e.id] = { seqNum: i + 1, label: 'in ' + (i + 1), prefix: 'in', type: e.source === 'request' ? 'request' : 'delivery' }; });
+  return map;
+}
+
+function getWeatherInfo(code) {
+  if (code === 0) return { icon: '☀️', text: 'صافٍ' };
+  if (code === 1 || code === 2) return { icon: '🌤️', text: 'غائم جزئياً' };
+  if (code === 3) return { icon: '☁️', text: 'غائم' };
+  if (code === 45 || code === 48) return { icon: '🌫️', text: 'ضباب' };
+  if (code >= 51 && code <= 55) return { icon: '🌦️', text: 'رذاذ' };
+  if (code >= 61 && code <= 65) return { icon: '🌧️', text: 'مطر' };
+  if (code >= 71 && code <= 75) return { icon: '❄️', text: 'ثلوج' };
+  if (code >= 80 && code <= 82) return { icon: '🌧️', text: 'زخات مطر' };
+  if (code >= 95 && code <= 99) return { icon: '⛈️', text: 'عواصف رعدية' };
+  return { icon: '🌡️', text: 'غير معروف' };
+}
+
+// ==========================================
+// 2. المكونات المشتركة
+// ==========================================
+function Toast({ message, type, onClose }) {
+  React.useEffect(() => { const timer = setTimeout(onClose, 3500); return () => clearTimeout(timer); }, [onClose]);
+  return React.createElement("div", { className: "toast " + (type || "") },
+    React.createElement("span", null, type === 'error' ? "❌" : type === 'warning' ? "⚠️" : "✅"),
+    React.createElement("span", null, message)
+  );
+}
+
+function DisabledAccountScreen({ onAcknowledge }) {
+  return React.createElement("div", { className: "disabled-screen-overlay", style: { position: 'fixed', inset: 0, background: 'linear-gradient(135deg,#d32f2f,#b71c1c)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 } },
+    React.createElement("div", { className: "disabled-card", style: { background: '#fff', borderRadius: 24, padding: '32px 24px', width: '100%', maxWidth: 400, textAlign: 'center', boxShadow: '0 20px 50px rgba(0,0,0,0.3)' } },
+      React.createElement("div", { style: { fontSize: 80, marginBottom: 16 } }, "🚫"),
+      React.createElement("h2", { style: { color: '#b71c1c', fontSize: 20, marginBottom: 20 } }, "تم تسجيل خروجك من التطبيق"),
+      React.createElement("div", { style: { background: '#ffebee', borderRadius: 12, padding: 16, marginBottom: 24, border: '1px solid #ffcdd2', color: '#c62828', fontSize: 14, fontWeight: 600, lineHeight: 1.6, display: 'flex', gap: 10, textAlign: 'right' } },
+        React.createElement("span", { style: { fontSize: 24 } }, "⛔"),
+        React.createElement("div", null, "تم تعطيل حسابك من قبل الإدارة. لا يمكنك استخدام التطبيق حتى يتم تفعيل حسابك مجددًا.")
+      ),
+      React.createElement("button", { onClick: onAcknowledge, style: { width: '100%', padding: 14, borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#d32f2f,#b71c1c)', color: '#fff', fontSize: 16, fontWeight: 800, cursor: 'pointer' } }, "حسنًا، فهمت 🔥")
+    )
+  );
+}
+
+function DateNavigator({ selectedDate, onDateChange }) {
+  const [currentTime, setCurrentTime] = React.useState(getLiveTime());
+  React.useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(getLiveTime()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+  const days = React.useMemo(() => getDaysArray(selectedDate, 10), [selectedDate]);
+  return React.createElement("div", { className: "date-nav-container" },
+    React.createElement("div", { className: "time-display" },
+      React.createElement("span", null, "🕒"), React.createElement("span", null, formatTime(currentTime))
+    ),
+    React.createElement("div", { className: "days-scroll-container" },
+      days.map(day => React.createElement("div", {
+        key: day.dateStr, className: "day-pill " + (day.dateStr === selectedDate ? 'active' : ''), onClick: () => onDateChange(day.dateStr)
+      },
+        React.createElement("span", { className: "d-num" }, day.dayNum), React.createElement("span", { className: "d-name" }, day.dayName)
+      ))
+    ),
+    React.createElement("div", { className: "calendar-trigger" }, "📅",
+      React.createElement("input", { type: "date", className: "calendar-input", onChange: (e) => {
+          if (e.target.value) { const [y, m, d] = e.target.value.split('-'); onDateChange(d + '/' + m + '/' + y); }
+        }})
+    ),
+    React.createElement("div", { className: "current-date-text" },
+      React.createElement("span", { className: "c-date" }, selectedDate), React.createElement("span", { className: "c-day" }, getDayNameFromDate(selectedDate))
+    )
+  );
+}
+
+// ==========================================
+// 3. واجهة تسجيل الدخول
+// ==========================================
+function DriverLoginScreen({ onLogin }) {
+  const [members, setMembers] = React.useState({});
+  const [loading, setLoading] = React.useState(true);
+  const [searchText, setSearchText] = React.useState('');
+  const [selectedMember, setSelectedMember] = React.useState('');
+  const [secretCode, setSecretCode] = React.useState('');
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [error, setError] = React.useState('');
+  const [showDropdown, setShowDropdown] = React.useState(false);
+  const [rememberMe, setRememberMe] = React.useState(false);
+
+  React.useEffect(() => {
+    const membersRef = db.ref(DB_PATHS.members);
+    membersRef.on('value', (snap) => { setMembers(snap.exists() ? snap.val() : {}); setLoading(false); });
+    return () => membersRef.off();
+  }, []);
+
+  const searchResults = React.useMemo(() => {
+    if (!searchText.trim()) return [];
+    return Object.keys(members).map(name => ({ name, ...getMatchScore(name, searchText) })).filter(r => r.score > 0).sort((a, b) => b.score - a.score);
+  }, [searchText, members]);
+
+  const handleLogin = (e) => {
+    e.preventDefault(); setError('');
+    if (!selectedMember) {
+      const exact = Object.keys(members).find(n => n === searchText.trim());
+      if (exact) setSelectedMember(exact); else { setError('❌ يرجى اختيار اسمك من القائمة'); return; }
+    }
+    const memberData = members[selectedMember || searchText.trim()];
+    if (!memberData) { setError('❌ هذا الاسم غير موجود'); return; }
+    if (!memberData.secretCode) { setError('⚠️ لا يوجد رمز سري لهذا الحساب'); return; }
+    if (secretCode !== memberData.secretCode) { setError('❌ الرمز السري غير صحيح'); return; }
+    
+    const sessionToken = 'session_' + Date.now();
+    const user = selectedMember || searchText.trim();
+    
+    db.ref(DB_PATHS.members + '/' + user + '/sessionToken').set(sessionToken).then(() => {
+      if (rememberMe) {
+        localStorage.setItem('octushopper_driver_auto_login', JSON.stringify({ user, token: sessionToken }));
+      } else {
+        localStorage.removeItem('octushopper_driver_auto_login');
+      }
+      onLogin(user, sessionToken);
+    });
+  };
+
+  if (loading) return React.createElement("div", { style: { padding: 40, textAlign: 'center', fontWeight: 'bold' } }, "⏳ جاري التحميل...");
+
+  return React.createElement("div", { className: "login-screen" },
+    React.createElement("div", { className: "login-card" },
+      React.createElement("div", { className: "login-logo" }, "🏍️"),
+      React.createElement("h1", { className: "login-title" }, "تطبيق السائق"),
+      React.createElement("p", { className: "login-sub" }, "سجّل الدخول للمتابعة"),
+      error ? React.createElement("div", { style: { background: '#ffebee', color: '#c62828', padding: 12, borderRadius: 10, marginBottom: 16, textAlign: 'center', fontWeight: 'bold' } }, error) : null,
+      React.createElement("form", { onSubmit: handleLogin },
+        React.createElement("div", { className: "form-group", style: { position: 'relative' } },
+          React.createElement("label", null, "👤 اسم السائق"),
+          React.createElement("div", { className: "search-wrap" },
+             React.createElement("input", { type: "text", placeholder: "ابحث بالعربي أو الإنجليزي...", value: searchText, onChange: e => { setSearchText(e.target.value); setSelectedMember(''); setShowDropdown(true); }, onFocus: () => setShowDropdown(true), onBlur: () => setTimeout(() => setShowDropdown(false), 200) }),
+             React.createElement("span", { className: "search-icon" }, "🔎")
+          ),
+          showDropdown && searchResults.length > 0 ? React.createElement("div", { className: "search-results", style: { display: 'block' } },
+            searchResults.map(item => React.createElement("div", { key: item.name, className: "item", onClick: () => { setSelectedMember(item.name); setSearchText(item.name); setShowDropdown(false); } },
+              React.createElement("span", { style: { fontWeight: 'bold' } }, item.name),
+              React.createElement("span", { style: { fontSize: 10, background: item.type === 'exact' ? '#e8f5e9' : '#fff3e0', color: item.type === 'exact' ? '#2e7d32' : '#e65100', padding: '2px 8px', borderRadius: 10, float: 'left', marginTop: 2 } }, item.label)
+            ))
+          ) : null
+        ),
+        React.createElement("div", { className: "form-group" },
+          React.createElement("label", null, "🔑 الرمز السري"),
+          React.createElement("div", { style: { position: 'relative' } },
+            React.createElement("input", { type: showPassword ? "text" : "password", className: "form-control", placeholder: "أدخل الرمز السري", value: secretCode, onChange: e => setSecretCode(e.target.value), style: { paddingLeft: 48 } }),
+            React.createElement("button", { type: "button", style: { position: 'absolute', left: 12, top: 14, background: 'none', border: 'none', fontSize: 18, cursor: 'pointer' }, onClick: () => setShowPassword(!showPassword) }, showPassword ? "🙈" : "👁️‍🗨️")
+          )
+        ),
+        React.createElement("div", { className: "remember-me-container" },
+          React.createElement("input", { type: "checkbox", id: "rememberMe", checked: rememberMe, onChange: (e) => setRememberMe(e.target.checked) }),
+          React.createElement("label", { htmlFor: "rememberMe" }, "تذكرني (تسجيل دخول تلقائي)")
+        ),
+        React.createElement("button", { type: "submit", className: "login-btn", style: { marginTop: 4 } }, "🚀 دخول إلى النظام")
+      )
+    )
+  );
+}
+
+// ==========================================
+// 4. واجهات الإجراءات
+// ==========================================
+function TransferOptionsModal({ onClose, onSelectAlert, onSelectAction }) {
+  return React.createElement("div", { className: "modal-overlay", onClick: onClose },
+    React.createElement("div", { className: "modal-content", onClick: e => e.stopPropagation() },
+      React.createElement("div", { className: "modal-header" }, React.createElement("h3", null, "🔄 إجراءات التحويل"), React.createElement("button", { className: "close-btn", onClick: onClose }, "✕")),
+      React.createElement("div", { className: "option-grid" },
+        React.createElement("div", { className: "option-btn", onClick: onSelectAlert }, React.createElement("div", { className: "icon" }, "🔔"), React.createElement("div", { className: "text" }, React.createElement("h4", null, "تنبيه تحويل"), React.createElement("p", null, "إرسال تنبيه فوري للإدارة بعد 20 ثانية"))),
+        React.createElement("div", { className: "option-btn", onClick: onSelectAction }, React.createElement("div", { className: "icon" }, "📝"), React.createElement("div", { className: "text" }, React.createElement("h4", null, "طلب تحويل"), React.createElement("p", null, "إرسال طلب تحويل مالي للإدارة (يتطلب موافقة)")))
+      )
+    )
+  );
+}
+
+function TransferAlertModal({ onClose, user, onSuccess }) {
+  const [countdown, setCountdown] = React.useState(20);
+  const [isSending, setIsSending] = React.useState(false);
+  React.useEffect(() => { if (countdown > 0) { const timer = setTimeout(() => setCountdown(countdown - 1), 1000); return () => clearTimeout(timer); } }, [countdown]);
+  const handleSend = async () => {
+    if (countdown > 0) return; setIsSending(true);
+    const requestData = { id: uid(), member: user, type: 'transfer_alert', time: getLiveTime(), date: getLiveDateStr(), timestamp: Date.now(), status: 'pending', driverNotified: false };
+    try { await db.ref(DB_PATHS.requests + '/' + requestData.id).set(requestData); onSuccess("✅ تم إرسال التنبيه بنجاح إلى الإدارة"); onClose(); } catch(e) { alert("حدث خطأ أثناء الإرسال"); setIsSending(false); }
+  };
+  return React.createElement("div", { className: "modal-overlay", onClick: onClose },
+    React.createElement("div", { className: "modal-content", onClick: e => e.stopPropagation(), style: { textAlign: 'center' } },
+      React.createElement("div", { className: "modal-header", style: { justifyContent: 'center' } }, React.createElement("h3", { style: { fontSize: 22 } }, "🔔 تنبيه تحويل")),
+      React.createElement("p", { style: { color: '#64748b', marginBottom: 20 } }, "سيتم إرسال إشعار فوري للإدارة. يرجى الانتظار..."),
+      React.createElement("div", { className: "timer-circle " + (countdown === 0 ? 'ready' : ''), style: { borderColor: countdown === 0 ? '#2e7d32' : '#ffcdd2', color: countdown === 0 ? '#2e7d32' : '#c62828' } }, countdown > 0 ? countdown : "✓"),
+      React.createElement("button", { className: "submit-btn", onClick: handleSend, disabled: countdown > 0 || isSending, style: { background: countdown === 0 ? 'linear-gradient(135deg, #2e7d32, #1b5e20)' : '#cbd5e1' } }, countdown > 0 ? "⏳ جاري الانتظار..." : (isSending ? "⏳ جاري الإرسال..." : "🔔 إرسال التنبيه الآن")),
+      React.createElement("button", { onClick: onClose, style: { background: 'none', border: 'none', color: '#94a3b8', marginTop: 16, cursor: 'pointer', fontWeight: 600 } }, "إلغاء")
+    )
+  );
+}
+
+function TransferActionModal({ onClose, user, onSuccess }) {
+  const [currency, setCurrency] = React.useState('$');
+  const [amount, setAmount] = React.useState('');
+  const [notes, setNotes] = React.useState('');
+  const [image, setImage] = React.useState(null);
+  const [loading, setLoading] = React.useState(false);
+  const handleImageUpload = (e) => { const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = async (ev) => { setImage(await compressImage(ev.target.result)); }; reader.readAsDataURL(file); } };
+  const handleSubmit = async () => {
+    if (!amount || isNaN(amount) || amount <= 0) return alert("أدخل مبلغاً صحيحاً"); setLoading(true);
+    const requestData = { id: uid(), member: user, type: 'transfer_request', amount: parseFloat(amount), currency, notes, image, time: getLiveTime(), date: getLiveDateStr(), timestamp: Date.now(), status: 'pending', driverNotified: false };
+    try { await db.ref(DB_PATHS.requests + '/' + requestData.id).set(requestData); onSuccess("✅ تم إرسال طلب التحويل للإدارة للمراجعة"); onClose(); } catch(e) { alert("حدث خطأ"); } finally { setLoading(false); }
+  };
+  return React.createElement("div", { className: "modal-overlay", onClick: onClose },
+    React.createElement("div", { className: "modal-content", onClick: e => e.stopPropagation() },
+      React.createElement("div", { className: "modal-header" }, React.createElement("h3", null, "📝 طلب تحويل مالي"), React.createElement("button", { className: "close-btn", onClick: onClose }, "✕")),
+      React.createElement("div", { style: { background: '#fff3e0', color: '#e65100', padding: 12, borderRadius: 8, fontSize: 12, marginBottom: 16, fontWeight: 600 } }, "ℹ️ سيتم مراجعة هذا الطلب من قبل الإدارة. لا يمكن إدخال التحويلات مباشرة."),
+      React.createElement("div", { className: "currency-toggle" },
+        React.createElement("button", { className: "currency-btn " + (currency === '$' ? 'active' : ''), onClick: () => setCurrency('$') }, "$ دولار"),
+        React.createElement("button", { className: "currency-btn " + (currency === 'LL' ? 'active' : ''), onClick: () => setCurrency('LL') }, "ل.ل ليرة")
+      ),
+      React.createElement("div", { className: "form-group" }, React.createElement("label", null, "المبلغ (" + currency + ")"), React.createElement("input", { type: "number", className: "form-control", placeholder: "0.00", value: amount, onChange: e => setAmount(e.target.value), style: { fontSize: 24, textAlign: 'center', fontWeight: 'bold', color: currency === '$' ? '#00695c' : '#c62828' } })),
+      React.createElement("div", { className: "form-group" }, React.createElement("label", null, "ملاحظات"), React.createElement("input", { type: "text", className: "form-control", placeholder: "اختياري...", value: notes, onChange: e => setNotes(e.target.value) })),
+      React.createElement("div", { className: "form-group" },
+        React.createElement("label", null, "إرفاق صورة (اختياري)"),
+        React.createElement("div", { className: "image-upload-grid" },
+          React.createElement("label", { className: "upload-btn" }, React.createElement("span", { style: { fontSize: 24 } }, "📸"), "تصوير مباشر", React.createElement("input", { type: "file", accept: "image/*", capture: "environment", style: { display: 'none' }, onChange: handleImageUpload })),
+          React.createElement("label", { className: "upload-btn" }, React.createElement("span", { style: { fontSize: 24 } }, "🖼️"), "من الاستوديو", React.createElement("input", { type: "file", accept: "image/*", style: { display: 'none' }, onChange: handleImageUpload }))
+        ),
+        image ? React.createElement("img", { src: image, className: "image-preview" }) : null
+      ),
+      React.createElement("button", { className: "submit-btn", onClick: handleSubmit, disabled: loading }, loading ? "⏳ جاري الإرسال..." : "📨 إرسال طلب التحويل")
+    )
+  );
+}
+
+function DeliveryModal({ user, destinations, onClose, onSuccess }) {
+  const [currency, setCurrency] = React.useState('$');
+  const [amount, setAmount] = React.useState('');
+  const [dest, setDest] = React.useState(destinations.length > 0 ? destinations[0].name : '');
+  const [notes, setNotes] = React.useState('');
+  const [image, setImage] = React.useState(null);
+  const [loading, setLoading] = React.useState(false);
+
+  React.useEffect(() => { if(!dest && destinations.length > 0) setDest(destinations[0].name); }, [destinations]);
+
+  const handleImageUpload = (e) => { const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = async (ev) => { setImage(await compressImage(ev.target.result)); }; reader.readAsDataURL(file); } };
+  const handleSubmit = async () => {
+    if (!amount || isNaN(amount) || amount <= 0) return alert("أدخل مبلغاً صحيحاً");
+    if (!image) return alert("صورة النقود إلزامية");
+    if (!dest) return alert("اختر وجهة التسليم");
+    setLoading(true);
+    const requestData = { id: uid(), member: user, amount: parseFloat(amount), currency, dest, notes, image, time: getLiveTime(), date: getLiveDateStr(), timestamp: Date.now(), status: 'pending', type: 'delivery_request', driverNotified: false };
+    try { await db.ref(DB_PATHS.requests + '/' + requestData.id).set(requestData); onSuccess("✅ تم إرسال التسليم بنجاح وهو قيد المراجعة الآن"); onClose(); } catch (error) { alert("حدث خطأ أثناء الإرسال"); } finally { setLoading(false); }
+  };
+
+  return React.createElement("div", { className: "modal-overlay", onClick: onClose },
+    React.createElement("div", { className: "modal-content", onClick: e => e.stopPropagation() },
+      React.createElement("div", { className: "modal-header" }, React.createElement("h3", null, "📤 إرسال تسليم جديد"), React.createElement("button", { className: "close-btn", onClick: onClose }, "✕")),
+      React.createElement("div", { className: "currency-toggle" },
+        React.createElement("button", { className: "currency-btn " + (currency === '$' ? 'active' : ''), onClick: () => setCurrency('$') }, "$ دولار"),
+        React.createElement("button", { className: "currency-btn " + (currency === 'LL' ? 'active' : ''), onClick: () => setCurrency('LL') }, "ل.ل ليرة")
+      ),
+      React.createElement("div", { className: "form-group" }, React.createElement("label", null, "المبلغ (" + currency + ")"), React.createElement("input", { type: "number", className: "form-control", placeholder: "0.00", value: amount, onChange: e => setAmount(e.target.value), style: { fontSize: 24, textAlign: 'center', fontWeight: 'bold', color: currency === '$' ? '#00695c' : '#c62828' } })),
+      React.createElement("div", { className: "form-group" }, React.createElement("label", null, "وجهة التسليم"), React.createElement("select", { className: "form-control", value: dest, onChange: e => setDest(e.target.value) }, destinations.map(d => React.createElement("option", { key: d.id, value: d.name }, (d.icon || "📍") + " " + d.name)))),
+      React.createElement("div", { className: "form-group" }, React.createElement("label", null, "ملاحظات"), React.createElement("input", { type: "text", className: "form-control", placeholder: "اختياري...", value: notes, onChange: e => setNotes(e.target.value) })),
+      React.createElement("div", { className: "form-group" },
+        React.createElement("label", null, "صورة النقود (إلزامي)"),
+        React.createElement("div", { className: "image-upload-grid" },
+          React.createElement("label", { className: "upload-btn" }, React.createElement("span", { style: { fontSize: 24 } }, "📸"), "تصوير مباشر", React.createElement("input", { type: "file", accept: "image/*", capture: "environment", style: { display: 'none' }, onChange: handleImageUpload })),
+          React.createElement("label", { className: "upload-btn" }, React.createElement("span", { style: { fontSize: 24 } }, "🖼️"), "من الاستوديو", React.createElement("input", { type: "file", accept: "image/*", style: { display: 'none' }, onChange: handleImageUpload }))
+        ),
+        image ? React.createElement("img", { src: image, className: "image-preview" }) : null
+      ),
+      React.createElement("button", { className: "submit-btn", onClick: handleSubmit, disabled: loading }, loading ? "⏳ جاري الإرسال..." : "📨 إرسال الطلب")
+    )
+  );
+}
+
+// ==========================================
+// 5. الأقسام المدمجة
+// ==========================================
+function MyDataTab({ user, requests, daysData, collections, destinationsMap, seqMap, onCancelRequest }) {
+  const [subTab, setSubTab] = React.useState('all');
+  const [lightbox, setLightbox] = React.useState(null);
+  const member = user;
+
+  const pendingRequests = React.useMemo(() => {
+    return Object.values(requests || {}).filter(r => r && r.member === member && r.status === 'pending')
+      .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+  }, [requests, member]);
+
+  const rejectedRequests = React.useMemo(() => {
+    return Object.values(requests || {}).filter(r => r && r.member === member && r.status === 'rejected')
+      .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+  }, [requests, member]);
+
+  const myDeliveries = React.useMemo(() => {
+    const out = [];
+    Object.keys(daysData || {}).forEach(dayKey => {
+      const day = daysData[dayKey];
+      if (!day || !day.deliveries || !day.deliveries[member]) return;
+      (day.deliveries[member] || []).forEach(item => { if (item && item.id) out.push(Object.assign({}, item, { _dayKey: dayKey })); });
+    });
+    return sortChronologicallyDesc(out);
+  }, [daysData, member]);
+
+  const myTransfers = React.useMemo(() => {
+    const out = [];
+    Object.keys(daysData || {}).forEach(dayKey => {
+      const day = daysData[dayKey];
+      if (!day || !day.transfers || !day.transfers[member]) return;
+      (day.transfers[member] || []).forEach(item => { if (item && item.id) out.push(Object.assign({}, item, { _dayKey: dayKey })); });
+    });
+    return sortChronologicallyDesc(out);
+  }, [daysData, member]);
+
+  const isCollected = (item) => {
+    if (!item || !item._dayKey || !item.dest || !collections) return false;
+    const dayColl = collections[item._dayKey];
+    if (!dayColl) return false;
+    const destColl = dayColl[item.dest];
+    if (!destColl) return false;
+    const composite = member + '::' + item.id;
+    const encKey = encodeItemKey(composite);
+    return destColl[encKey] === true;
+  };
+
+  const renderPendingRequest = (req) => {
+    const seqInfo = seqMap ? seqMap[req.id] : null;
+    return React.createElement('div', { key: req.id, className: 'list-item pending' },
+      React.createElement('div', { className: 'item-info' },
+        React.createElement('div', { className: 'item-title' },
+          seqInfo ? React.createElement('span', { className: 'id-badge ' + (seqInfo.prefix === 'out' ? 'out' : 'in') }, seqInfo.label) : null,
+          React.createElement('span', { className: 'badge pending' }, '⏳ قيد المراجعة'),
+          req.dest ? React.createElement('span', { style: { fontSize: 12, color: '#0d47a1' } }, (destinationsMap[req.dest] ? destinationsMap[req.dest].icon : '📍') + ' ' + req.dest) : null
+        ),
+        React.createElement('div', { className: 'item-details' },
+          React.createElement('span', null, '📅 ' + formatDateDisplay(req.entryDate || '')),
+          React.createElement('span', null, '🕒 ' + formatTime(req.time || '')),
+          req.notes ? React.createElement('span', null, '📝 ' + req.notes) : null
+        ),
+        React.createElement("button", { className: "cancel-btn", onClick: (e) => { e.stopPropagation(); onCancelRequest(req.id); } }, "❌ إلغاء الطلب")
+      ),
+      React.createElement('div', { className: 'item-amount ' + (req.currency === '$' ? 'usd' : 'lbp') },
+        React.createElement('span', null, (req.currency === '$' ? '$' : '') + ' ' + formatNumber(req.amount) + (req.currency === 'LL' ? ' ل.ل' : '')),
+        req.image ? React.createElement('img', { src: req.image, className: 'item-thumb', onClick: () => setLightbox(req.image), title: "عرض الصورة" }) : null
+      )
+    );
+  };
+
+  const renderDelivery = (item) => {
+    const collected = isCollected(item);
+    const seqInfo = seqMap ? seqMap[item.id] : null;
+    return React.createElement('div', { key: item.id, className: 'list-item delivery' + (collected ? ' collected' : '') },
+      React.createElement('div', { className: 'item-info' },
+        React.createElement('div', { className: 'item-title' },
+          seqInfo ? React.createElement('span', { className: 'id-badge ' + (seqInfo.prefix === 'out' ? 'out' : 'in') }, seqInfo.label) : null,
+          React.createElement('span', { className: 'badge ' + (collected ? 'collected' : 'uncollected') }, collected ? '✅ مقبوض' : '⏳ غير مقبوض'),
+          item.dest ? React.createElement('span', { style: { fontSize: 12, color: '#0d47a1' } }, (destinationsMap[item.dest] ? destinationsMap[item.dest].icon : '📍') + ' ' + item.dest) : null
+        ),
+        React.createElement('div', { className: 'item-details' },
+          React.createElement('span', null, '📅 ' + formatDateDisplay(item.entryDate || '')),
+          React.createElement('span', null, '🕒 ' + formatTime(item.time || '')),
+          item.notes ? React.createElement('span', null, '📝 ' + item.notes) : null
+        )
+      ),
+      React.createElement('div', { className: 'item-amount ' + (item.currency === '$' ? 'usd' : 'lbp') },
+        React.createElement('span', null, (item.currency === '$' ? '$' : '') + ' ' + formatNumber(item.amount) + (item.currency === 'LL' ? ' ل.ل' : '')),
+        item.image ? React.createElement('img', { src: item.image, className: 'item-thumb', onClick: () => setLightbox(item.image), title: "عرض الصورة" }) : null
+      )
+    );
+  };
+
+  const renderTransfer = (item) => {
+    const seqInfo = seqMap ? seqMap[item.id] : null;
+    return React.createElement('div', { key: item.id, className: 'list-item transfer' },
+      React.createElement('div', { className: 'item-info' },
+        React.createElement('div', { className: 'item-title' }, 
+          seqInfo ? React.createElement('span', { className: 'id-badge ' + (seqInfo.prefix === 'out' ? 'out' : 'in') }, seqInfo.label) : null,
+          React.createElement('span', { className: 'badge approved' }, '↗️ تحويل')
+        ),
+        React.createElement('div', { className: 'item-details' },
+          React.createElement('span', null, '📅 ' + formatDateDisplay(item.entryDate || '')),
+          React.createElement('span', null, '🕒 ' + formatTime(item.time || ''))
+        )
+      ),
+      React.createElement('div', { className: 'item-amount ' + (item.currency === '$' ? 'usd' : 'lbp') },
+        React.createElement('span', null, (item.currency === '$' ? '$' : '') + ' ' + formatNumber(item.amount) + (item.currency === 'LL' ? ' ل.ل' : '')),
+        item.image ? React.createElement('img', { src: item.image, className: 'item-thumb', onClick: () => setLightbox(item.image), title: "عرض الصورة" }) : null
+      )
+    );
+  };
+
+  const renderRejected = (req) => {
+    const seqInfo = seqMap ? seqMap[req.id] : null;
+    return React.createElement('div', { key: req.id, className: 'list-item rejected' },
+      React.createElement('div', { className: 'item-info' },
+        React.createElement('div', { className: 'item-title' },
+          seqInfo ? React.createElement('span', { className: 'id-badge ' + (seqInfo.prefix === 'out' ? 'out' : 'in') }, seqInfo.label) : null,
+          React.createElement('span', { className: 'badge rejected' }, '❌ مرفوض'),
+          req.dest ? React.createElement('span', { style: { fontSize: 12, color: '#0d47a1' } }, (destinationsMap[req.dest] ? destinationsMap[req.dest].icon : '📍') + ' ' + req.dest) : null
+        ),
+        React.createElement('div', { className: 'item-details' },
+          React.createElement('span', null, '📅 ' + formatDateDisplay(req.entryDate || '')),
+          React.createElement('span', null, '🕒 ' + formatTime(req.time || ''))
+        )
+      ),
+      React.createElement('div', { className: 'item-amount ' + (req.currency === '$' ? 'usd' : 'lbp') },
+        React.createElement('span', null, (req.currency === '$' ? '$' : '') + ' ' + formatNumber(req.amount) + (req.currency === 'LL' ? ' ل.ل' : '')),
+        req.image ? React.createElement('img', { src: req.image, className: 'item-thumb', onClick: () => setLightbox(req.image), title: "عرض الصورة" }) : null
+      )
+    );
+  };
+
+  const counts = {
+    all: pendingRequests.length + myDeliveries.length + rejectedRequests.length + myTransfers.length,
+    pending: pendingRequests.length,
+    approved: myDeliveries.length,
+    rejected: rejectedRequests.length,
+    transfers: myTransfers.length
+  };
+
+  return React.createElement('div', null,
+    React.createElement('div', { className: 'tabs-bar' },
+      [
+        { key: 'all', icon: '📊', label: 'الكل', count: counts.all },
+        { key: 'pending', icon: '⏳', label: 'معلقة', count: counts.pending },
+        { key: 'approved', icon: '✅', label: 'مقبولة', count: counts.approved },
+        { key: 'rejected', icon: '❌', label: 'مرفوضة', count: counts.rejected },
+        { key: 'transfers', icon: '↗️', label: 'تحويلاتي', count: counts.transfers }
+      ].map(t => React.createElement('button', {
+        key: t.key, className: 'tab-btn ' + (subTab === t.key ? 'active' : ''), onClick: () => setSubTab(t.key)
+      },
+        React.createElement('span', { className: 'tab-icon' }, t.icon),
+        React.createElement('span', null, t.label + ' (' + t.count + ')')
+      ))
+    ),
+
+    subTab === 'pending' || (subTab === 'all' && pendingRequests.length > 0)
+      ? React.createElement('div', { style: { marginBottom: 12 } },
+          React.createElement('h4', { style: { color: '#e65100', fontSize: 13, marginBottom: 8, fontWeight: 800 } }, '⏳ طلبات قيد المراجعة (' + pendingRequests.length + ')'),
+          pendingRequests.length === 0 ? React.createElement('div', { className: 'empty-state', style: { padding: 20 } }, 'لا توجد طلبات معلقة') : pendingRequests.map(renderPendingRequest)
+        ) : null,
+
+    subTab === 'approved' || (subTab === 'all' && myDeliveries.length > 0)
+      ? React.createElement('div', { style: { marginBottom: 12 } },
+          React.createElement('h4', { style: { color: '#2e7d32', fontSize: 13, marginBottom: 8, fontWeight: 800 } }, '✅ تسليماتي المقبولة (' + myDeliveries.length + ')'),
+          myDeliveries.length === 0 ? React.createElement('div', { className: 'empty-state', style: { padding: 20 } }, 'لا توجد تسليمات') : myDeliveries.slice(0, 50).map(renderDelivery)
+        ) : null,
+
+    subTab === 'rejected' || (subTab === 'all' && rejectedRequests.length > 0)
+      ? React.createElement('div', { style: { marginBottom: 12 } },
+          React.createElement('h4', { style: { color: '#c62828', fontSize: 13, marginBottom: 8, fontWeight: 800 } }, '❌ طلبات مرفوضة (' + rejectedRequests.length + ')'),
+          rejectedRequests.length === 0 ? React.createElement('div', { className: 'empty-state', style: { padding: 20 } }, 'لا توجد طلبات مرفوضة') : rejectedRequests.map(renderRejected)
+        ) : null,
+
+    subTab === 'transfers' || (subTab === 'all' && myTransfers.length > 0)
+      ? React.createElement('div', { style: { marginBottom: 12 } },
+          React.createElement('h4', { style: { color: '#c62828', fontSize: 13, marginBottom: 8, fontWeight: 800 } }, '↗️ تحويلاتي (' + myTransfers.length + ')'),
+          myTransfers.length === 0 ? React.createElement('div', { className: 'empty-state', style: { padding: 20 } }, 'لا توجد تحويلات') : myTransfers.slice(0, 50).map(renderTransfer)
+        ) : null,
+
+    lightbox ? React.createElement('div', { className: 'lightbox', onClick: () => setLightbox(null) },
+      React.createElement('img', { src: lightbox, onClick: e => e.stopPropagation() }),
+      React.createElement('button', { className: 'lightbox-close', onClick: () => setLightbox(null) }, '✕')
+    ) : null
+  );
+}
+
+function DestinationSummaryTab({ user, daysData, destinations, collections, seqMap }) {
+  const member = user;
+  const [selectedDest, setSelectedDest] = React.useState(null);
+  const [lightbox, setLightbox] = React.useState(null);
+
+  const summaryByDest = React.useMemo(() => {
+    const out = {};
+    Object.keys(daysData || {}).forEach(dayKey => {
+      const day = daysData[dayKey];
+      if (!day || !day.deliveries || !day.deliveries[member]) return;
+      (day.deliveries[member] || []).forEach(item => {
+        if (!item || !item.dest) return;
+        const destName = item.dest;
+        if (!out[destName]) out[destName] = { items: [], totalUSD: 0, totalLBP: 0, collectedCount: 0 };
+        out[destName].items.push(Object.assign({}, item, { _dayKey: dayKey }));
+        if (item.currency === '$') out[destName].totalUSD += (+item.amount || 0);
+        else if (item.currency === 'LL') out[destName].totalLBP += (+item.amount || 0);
+      });
+    });
+    Object.keys(out).forEach(destName => {
+      out[destName].items.forEach(item => {
+        const dayColl = (collections || {})[item._dayKey];
+        if (!dayColl) return;
+        const destColl = dayColl[destName];
+        if (!destColl) return;
+        const encKey = encodeItemKey(member + '::' + item.id);
+        if (destColl[encKey] === true) out[destName].collectedCount += 1;
+      });
+    });
+    Object.keys(out).forEach(destName => { out[destName].items = sortChronologicallyDesc(out[destName].items); });
+    return out;
+  }, [daysData, member, collections]);
+
+  const destList = destinations.filter(d => summaryByDest[d.name] && summaryByDest[d.name].items.length > 0);
+
+  const isCollected = (item) => {
+    if (!item || !item._dayKey || !item.dest) return false;
+    const dayColl = (collections || {})[item._dayKey];
+    if (!dayColl) return false;
+    const destColl = dayColl[item.dest];
+    if (!destColl) return false;
+    const encKey = encodeItemKey(member + '::' + item.id);
+    return destColl[encKey] === true;
+  };
+
+  const totals = React.useMemo(() => {
+    let usd = 0, lbp = 0, count = 0, collected = 0;
+    Object.values(summaryByDest).forEach(d => { usd += d.totalUSD; lbp += d.totalLBP; count += d.items.length; collected += d.collectedCount; });
+    return { usd, lbp, count, collected };
+  }, [summaryByDest]);
+
+  if (destList.length === 0) {
+    return React.createElement('div', { className: 'empty-state' },
+      React.createElement('span', { className: 'icon' }, '📭'),
+      React.createElement('div', null, 'لا توجد تسليمات حسب الجهة بعد'),
+      React.createElement('div', { style: { fontSize: 11, marginTop: 6, color: '#b0bec5' } }, 'عند قبول الإدارة لتسليماتك ستظهر هنا تلقائياً')
+    );
+  }
+
+  const selectedItems = selectedDest ? summaryByDest[selectedDest] : null;
+
+  return React.createElement('div', null,
+    React.createElement('div', { style: { background: '#fff', padding: 12, borderRadius: 12, marginBottom: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' } },
+      React.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexWrap: 'wrap', gap: 8 } },
+        React.createElement('div', { style: { fontSize: 13, fontWeight: 800, color: '#004d40' } }, '📊 ملخص تسليماتي حسب الجهة'),
+        React.createElement('div', { style: { fontSize: 11, fontWeight: 700, color: '#2e7d32', background: 'rgba(46,125,50,.1)', padding: '3px 10px', borderRadius: 10 } }, '✅ ' + totals.collected + ' / ' + totals.count + ' مقبوض')
+      ),
+      React.createElement('div', { style: { display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'space-around' } },
+        React.createElement('div', { style: { textAlign: 'center' } }, React.createElement('div', { style: { fontSize: 10, color: '#78909c', fontWeight: 700 } }, 'الإجمالي $'), React.createElement('div', { style: { fontSize: 15, fontWeight: 800, fontFamily: 'monospace', color: '#2e7d32' } }, totals.usd.toFixed(2))),
+        React.createElement('div', { style: { textAlign: 'center' } }, React.createElement('div', { style: { fontSize: 10, color: '#78909c', fontWeight: 700 } }, 'الإجمالي ل.ل'), React.createElement('div', { style: { fontSize: 15, fontWeight: 800, fontFamily: 'monospace', color: '#f57c00' } }, formatNumber(Math.round(totals.lbp))))
+      )
+    ),
+    React.createElement('div', { style: { fontSize: 11, color: '#78909c', textAlign: 'center', padding: '6px 0 10px', fontWeight: 600 } }, '👆 اضغط على أي جهة لعرض التفاصيل (قراءة فقط)'),
+    destList.map(d => {
+      const data = summaryByDest[d.name];
+      const remaining = data.items.length - data.collectedCount;
+      return React.createElement('div', { key: d.id, className: 'dest-card', onClick: () => setSelectedDest(d.name) },
+        React.createElement('div', { className: 'dest-header' },
+          React.createElement('div', { className: 'dest-name' }, React.createElement('span', null, d.icon || '📍'), React.createElement('span', null, d.name), React.createElement('span', { className: 'dest-count-badge' }, data.items.length + ' تسليم')),
+          React.createElement('div', { className: 'dest-amounts' },
+            data.totalUSD > 0 ? React.createElement('span', { className: 'dest-usd' }, '$ ' + data.totalUSD.toFixed(2)) : null,
+            data.totalLBP > 0 ? React.createElement('span', { className: 'dest-lbp' }, formatNumber(Math.round(data.totalLBP)) + ' ل.ل') : null
+          )
+        ),
+        React.createElement('div', { className: 'dest-stats' },
+          React.createElement('div', { className: 'dest-stat' }, React.createElement('div', { className: 'lbl' }, '📦 الإجمالي'), React.createElement('div', { className: 'val total' }, data.items.length + ' عنصر')),
+          React.createElement('div', { className: 'dest-stat' }, React.createElement('div', { className: 'lbl' }, '✅ مقبوض'), React.createElement('div', { className: 'val collected' }, data.collectedCount + ' عنصر')),
+          React.createElement('div', { className: 'dest-stat' }, React.createElement('div', { className: 'lbl' }, '⏳ متبقٍ'), React.createElement('div', { className: 'val pending' }, remaining + ' عنصر'))
+        )
+      );
+    }),
+    selectedDest ? React.createElement('div', { className: 'modal-overlay', onClick: () => setSelectedDest(null) },
+      React.createElement('div', { className: 'modal-content', onClick: e => e.stopPropagation() },
+        React.createElement('div', { className: 'modal-header' }, React.createElement('h3', null, '📋 تفاصيل ' + selectedDest), React.createElement('button', { className: 'close-btn', onClick: () => setSelectedDest(null) }, "✕")),
+        React.createElement('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 14 } },
+          React.createElement('div', { style: { textAlign: 'center', padding: 10, background: 'rgba(21,101,192,.08)', borderRadius: 10 } }, React.createElement('div', { style: { fontSize: 10, color: '#78909c', fontWeight: 700 } }, '📦 الإجمالي'), React.createElement('div', { style: { fontSize: 14, fontWeight: 800, color: '#0d47a1', fontFamily: 'monospace' } }, selectedItems.items.length)),
+          React.createElement('div', { style: { textAlign: 'center', padding: 10, background: 'rgba(46,125,50,.08)', borderRadius: 10 } }, React.createElement('div', { style: { fontSize: 10, color: '#78909c', fontWeight: 700 } }, '✅ مقبوض'), React.createElement('div', { style: { fontSize: 14, fontWeight: 800, color: '#2e7d32', fontFamily: 'monospace' } }, selectedItems.collectedCount)),
+          React.createElement('div', { style: { textAlign: 'center', padding: 10, background: 'rgba(230,81,0,.08)', borderRadius: 10 } }, React.createElement('div', { style: { fontSize: 10, color: '#78909c', fontWeight: 700 } }, '⏳ متبقٍ'), React.createElement('div', { style: { fontSize: 14, fontWeight: 800, color: '#e65100', fontFamily: 'monospace' } }, selectedItems.items.length - selectedItems.collectedCount))
+        ),
+        React.createElement('div', { style: { maxHeight: 380, overflowY: 'auto' } },
+          selectedItems.items.map(item => {
+            const collected = isCollected(item);
+            const seqInfo = seqMap ? seqMap[item.id] : null;
+            return React.createElement('div', { key: item.id, className: 'detail-item' + (collected ? ' collected' : '') },
+              React.createElement('div', { className: 'item-info' },
+                seqInfo ? React.createElement('span', { className: 'id-badge ' + (seqInfo.prefix === 'out' ? 'out' : 'in') }, seqInfo.label) : null,
+                React.createElement('span', { className: 'item-amount' }, (item.currency === '$' ? '$ ' : '') + formatNumber(item.amount) + (item.currency === 'LL' ? ' ل.ل' : '')),
+                React.createElement('span', { className: 'item-date' }, formatDateDisplay(item.entryDate || '') + ' · ' + formatTime(item.time || ''))
+              ),
+              item.image ? React.createElement('img', { src: item.image, className: 'item-thumb', onClick: () => setLightbox(item.image) }) : null,
+              React.createElement('span', { className: 'item-status badge ' + (collected ? 'collected' : 'uncollected') }, collected ? '✅ مقبوض' : '⏳ معلق')
+            );
+          })
+        ),
+        React.createElement('div', { style: { marginTop: 14, padding: 12, background: 'rgba(0,105,92,.06)', borderRadius: 10, fontSize: 12, fontWeight: 700, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 } },
+          React.createElement('span', null, '💰 إجمالي: ' + (selectedItems.totalUSD > 0 ? '$' + selectedItems.totalUSD.toFixed(2) : '') + (selectedItems.totalLBP > 0 ? ' ' + formatNumber(Math.round(selectedItems.totalLBP)) + ' ل.ل' : '')),
+          React.createElement('span', { style: { color: '#2e7d32' } }, '✅ مقبوض: ' + selectedItems.collectedCount + '/' + selectedItems.items.length)
+        ),
+        React.createElement('div', { style: { marginTop: 12, textAlign: 'center' } }, React.createElement('button', { className: 'btn-ghost', style: { width: '100%' }, onClick: () => setSelectedDest(null) }, 'إغلاق'))
+      )
+    ) : null,
+    lightbox ? React.createElement('div', { className: 'lightbox', onClick: () => setLightbox(null) },
+      React.createElement('img', { src: lightbox, onClick: e => e.stopPropagation() }),
+      React.createElement('button', { className: 'lightbox-close', onClick: () => setLightbox(null) }, '✕')
+    ) : null
+  );
+}
+
+function DetailedNotificationsModal({ notifications, onClose, onMarkRead, onDelete, onClear }) {
+  const [filter, setFilter] = React.useState('all');
+  
+  const filtered = notifications.filter(n => filter === 'all' || n.type === filter);
+
+  const handleClearAll = () => {
+    if (!window.confirm('هل تريد مسح جميع الإشعارات؟')) return;
+    onClear();
+  };
+
+  const handleOpen = (n) => {
+    if (!n.read) onMarkRead(n.id);
+  };
+
+  return React.createElement("div", { className: "modal-overlay", onClick: onClose },
+    React.createElement("div", { className: "modal-content", onClick: e => e.stopPropagation() },
+      React.createElement("div", { className: "modal-header" }, 
+        React.createElement("h3", null, "🔔 الإشعارات (" + notifications.filter(n => !n.read).length + " غير مقروء)"), 
+        React.createElement("button", { className: "close-btn", onClick: onClose }, "✕")
+      ),
+      React.createElement("div", { className: "tabs-bar" },
+        [
+          { key: 'all', icon: '📬', label: 'الكل' },
+          { key: 'pending', icon: '⏳', label: 'معلق' },
+          { key: 'approved', icon: '✅', label: 'مقبول' },
+          { key: 'rejected', icon: '❌', label: 'مرفوض' },
+          { key: 'alert', icon: '🚨', label: 'تنبيهات' }
+        ].map(t => React.createElement('button', {
+          key: t.key, className: 'tab-btn ' + (filter === t.key ? 'active' : ''), onClick: () => setFilter(t.key), style: { minWidth: 70 }
+        }, React.createElement('span', { className: 'tab-icon' }, t.icon), React.createElement('span', null, t.label)))
+      ),
+      filtered.length === 0
+        ? React.createElement('div', { className: 'empty-state' }, React.createElement('span', { className: 'icon' }, '📭'), React.createElement('div', null, 'لا توجد إشعارات'))
+        : React.createElement('div', { style: { maxHeight: 400, overflowY: 'auto', paddingRight: 4 } },
+            filtered.map(n => React.createElement('div', {
+              key: n.id, className: 'notif-item ' + (n.type || '') + (n.read ? '' : ' unread'), onClick: () => handleOpen(n)
+            },
+              React.createElement('div', { className: 'notif-head' },
+                React.createElement('div', { className: 'notif-title' }, n.title || ''),
+                React.createElement('div', { className: 'notif-time' }, new Date(n.timestamp).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }))
+              ),
+              React.createElement('div', { className: 'notif-msg' }, n.msg || ''),
+              React.createElement('button', { className: 'notif-del', onClick: (e) => { e.stopPropagation(); onDelete(n.id); } }, '🗑 حذف')
+            ))
+          ),
+      notifications.length > 0 ? React.createElement('div', { style: { display: 'flex', gap: 10, marginTop: 14 } },
+        React.createElement('button', { onClick: handleClearAll, style: { flex: 1, padding: 12, borderRadius: 10, border: 'none', background: '#c62828', color: '#fff', fontWeight: 'bold', cursor: 'pointer' } }, '🗑 مسح الكل'),
+        React.createElement('button', { onClick: onClose, className: 'btn-ghost', style: { flex: 1 } }, 'إغلاق')
+      ) : React.createElement('div', { style: { marginTop: 14 } }, React.createElement('button', { onClick: onClose, className: 'btn-ghost', style: { width: '100%' } }, 'إغلاق'))
+    )
+  );
+}
+
+// ==========================================
+// 6. كافة التفاصيل
+// ==========================================
+function DetailsView({ user, requests, daysData, seqMap, onCancelRequest }) {
+  const [activeTab, setActiveTab] = React.useState('all');
+  const [selectedDate, setSelectedDate] = React.useState(getLiveDateStr());
+  const [lightbox, setLightbox] = React.useState(null);
+
+  const { transfers, approvedDeliveries, pendingDeliveries, pendingTransfers } = React.useMemo(() => {
+    let trans = []; let appDel = []; let pendTrans = [];
+    Object.keys(daysData || {}).forEach(dayKey => {
+      const day = daysData[dayKey];
+      if (day.transfers && day.transfers[user]) {
+        day.transfers[user].forEach(t => {
+          const dateStr = t.entryDate || dayKey.split('-').reverse().join('/');
+          if (dateStr === selectedDate) trans.push({ ...t, dayKey, status: 'approved' });
+        });
+      }
+      if (day.deliveries && day.deliveries[user]) {
+        day.deliveries[user].forEach(d => {
+          const dateStr = d.entryDate || dayKey.split('-').reverse().join('/');
+          if (dateStr === selectedDate) appDel.push({ ...d, dayKey, status: 'approved' });
+        });
+      }
+    });
+    const pendDel = Object.values(requests || {}).filter(r => r.member === user && r.type === 'delivery_request' && r.status === 'pending' && r.date === selectedDate);
+    pendTrans = Object.values(requests || {}).filter(r => r.member === user && r.type === 'transfer_request' && r.status === 'pending' && r.date === selectedDate);
+    const sortByTime = (a, b) => (b.timestamp || 0) - (a.timestamp || 0);
+    return { transfers: trans.sort(sortByTime), approvedDeliveries: appDel.sort(sortByTime), pendingDeliveries: pendDel.sort(sortByTime), pendingTransfers: pendTrans.sort(sortByTime) };
+  }, [user, requests, daysData, selectedDate]);
+
+  const allOperations = [...transfers, ...approvedDeliveries, ...pendingDeliveries, ...pendingTransfers].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+  const renderList = (items, type) => {
+    if (items.length === 0) return React.createElement("div", { className: "empty-state" }, React.createElement("div", { className: "icon" }, "📭"), React.createElement("p", null, "لا توجد سجلات في هذا اليوم"));
+    return items.map((item, idx) => {
+      const isTransfer = type === 'transfer' || item.type === 'transfer_request' || (item.id && item.id.startsWith('t-h-'));
+      const isPending = item.status === 'pending';
+      const dateStr = item.date || item.entryDate || (item.dayKey ? item.dayKey.split('-').reverse().join('/') : '');
+      const displayAmount = item.currency === 'LL' ? formatNumber(item.amount) : parseFloat(item.amount || 0).toFixed(2);
+      const seqInfo = seqMap ? seqMap[item.id] : null;
+      const idBadge = React.createElement("span", { className: "id-badge " + (isTransfer ? "out" : "in") }, seqInfo ? seqInfo.label : "---");
+
+      return React.createElement("div", { key: item.id || idx, className: "list-item " + (isPending ? 'pending' : (isTransfer ? 'transfer' : 'delivery')) },
+        React.createElement("div", { className: "item-info" },
+          React.createElement("div", { className: "item-title" }, idBadge, isTransfer ? "↗️ تحويل" : "↙️ تسليم", isPending ? React.createElement("span", { className: "badge pending" }, "⏳ قيد المراجعة") : React.createElement("span", { className: "badge approved" }, "✅ مقبول")),
+          React.createElement("div", { className: "item-details" }, "📅 " + dateStr + " 🕒 " + formatTime(item.time)),
+          item.dest ? React.createElement("div", { className: "item-details" }, "📍 " + item.dest) : null,
+          isPending ? React.createElement("button", { className: "cancel-btn", onClick: () => onCancelRequest(item.id) }, "❌ إلغاء") : null
+        ),
+        React.createElement("div", { className: "item-amount" }, 
+          React.createElement("span", null, displayAmount + " " + item.currency),
+          item.image ? React.createElement("img", { src: item.image, className: "item-thumb", onClick: () => setLightbox(item.image) }) : null
+        )
+      );
+    });
+  };
+
+  return React.createElement("div", null,
+    React.createElement(DateNavigator, { selectedDate, onDateChange: setSelectedDate }),
+    React.createElement("div", null,
+      React.createElement("div", { className: "tabs-container", style: { display: 'flex', gap: 8, marginBottom: 16, overflowX: 'auto', paddingBottom: 4 } },
+        React.createElement("button", { className: "tab-btn " + (activeTab === 'all' ? 'active' : ''), onClick: () => setActiveTab('all'), style: { padding: '8px 16px', borderRadius: 20, border: '1px solid #e2e8f0', background: activeTab==='all'?'#00695c':'#fff', color: activeTab==='all'?'#fff':'#64748b', fontWeight: 'bold', fontSize: 13 } }, "📊 الكل (" + allOperations.length + ")"),
+        React.createElement("button", { className: "tab-btn " + (activeTab === 'transfers' ? 'active' : ''), onClick: () => setActiveTab('transfers'), style: { padding: '8px 16px', borderRadius: 20, border: '1px solid #e2e8f0', background: activeTab==='transfers'?'#00695c':'#fff', color: activeTab==='transfers'?'#fff':'#64748b', fontWeight: 'bold', fontSize: 13 } }, "↗️ التحويلات (" + (transfers.length + pendingTransfers.length) + ")"),
+        React.createElement("button", { className: "tab-btn " + (activeTab === 'approved' ? 'active' : ''), onClick: () => setActiveTab('approved'), style: { padding: '8px 16px', borderRadius: 20, border: '1px solid #e2e8f0', background: activeTab==='approved'?'#00695c':'#fff', color: activeTab==='approved'?'#fff':'#64748b', fontWeight: 'bold', fontSize: 13 } }, "✅ تسليمات مقبولة (" + approvedDeliveries.length + ")"),
+        React.createElement("button", { className: "tab-btn " + (activeTab === 'pending' ? 'active' : ''), onClick: () => setActiveTab('pending'), style: { padding: '8px 16px', borderRadius: 20, border: '1px solid #e2e8f0', background: activeTab==='pending'?'#00695c':'#fff', color: activeTab==='pending'?'#fff':'#64748b', fontWeight: 'bold', fontSize: 13 } }, "⏳ قيد المراجعة (" + (pendingDeliveries.length + pendingTransfers.length) + ")")
+      ),
+      React.createElement("div", { style: { marginTop: 16 } },
+        activeTab === 'all' ? renderList(allOperations, 'all') : 
+        activeTab === 'transfers' ? renderList([...transfers, ...pendingTransfers], 'transfer') : 
+        activeTab === 'approved' ? renderList(approvedDeliveries, 'delivery') : 
+        renderList([...pendingDeliveries, ...pendingTransfers], 'delivery')
+      )
+    ),
+    lightbox ? React.createElement('div', { className: 'lightbox', onClick: () => setLightbox(null) },
+      React.createElement('img', { src: lightbox, onClick: e => e.stopPropagation() }),
+      React.createElement('button', { className: 'lightbox-close', onClick: () => setLightbox(null) }, '✕')
+    ) : null
+  );
+}
+
+// ==========================================
+// 7. لوحة التحكم الرئيسية
+// ==========================================
+function Dashboard({ user, onOpenDelivery, onOpenTransferOptions, pendingCount }) {
+  return React.createElement("div", null,
+    React.createElement("div", { className: "welcome-banner" },
+      React.createElement("h2", null, "مرحباً " + user + " 🏍️"),
+      React.createElement("p", null, "أهلاً بك في تطبيق السائق")
+    ),
+    React.createElement("div", { className: "action-grid" },
+      React.createElement("div", { className: "action-card delivery", onClick: onOpenDelivery },
+        React.createElement("div", { className: "action-icon green" }, "📨"),
+        React.createElement("span", null, "إرسال تسليم")
+      ),
+      React.createElement("div", { className: "action-card alert", onClick: onOpenTransferOptions },
+        React.createElement("div", { className: "action-icon red" }, "🖐️"),
+        React.createElement("span", null, "تنبيه / إجراء تحويل")
+      )
+    ),
+    pendingCount > 0 ? React.createElement("div", { style: { background: '#fff3e0', padding: 16, borderRadius: 12, textAlign: 'center', border: '1px solid #ffb74d' } },
+      React.createElement("p", { style: { color: '#e65100', fontWeight: 'bold', fontSize: 14 } }, "لديك " + pendingCount + " طلبات قيد المراجعة حالياً")
+    ) : null
+  );
+}
+
+// ==========================================
+// 8. الهيكل الرئيسي (Main App) — معدّل
+// ==========================================
+function MainApp({ user, sessionToken, onLogout, disabledMembers }) {
+  const [view, setView] = React.useState('dashboard');
+  const [menuOpen, setMenuOpen] = React.useState(false);
+  const [toast, setToast] = React.useState(null);
+
+  const [showDeliveryModal, setShowDeliveryModal] = React.useState(false);
+  const [showTransferOptions, setShowTransferOptions] = React.useState(false);
+  const [showTransferAlert, setShowTransferAlert] = React.useState(false);
+  const [showTransferAction, setShowTransferAction] = React.useState(false);
+  const [showNotifications, setShowNotifications] = React.useState(false);
+  // ✅ CHANGED: from showWeatherModal to showWeatherScreen
+  const [showWeatherScreen, setShowWeatherScreen] = React.useState(false);
+  const [showWeatherWidget, setShowWeatherWidget] = React.useState(() => localStorage.getItem('hideWeatherWidget') !== 'true');
+
+  const [destinations, setDestinations] = React.useState([]);
+  const [requests, setRequests] = React.useState({});
+  const [daysData, setDaysData] = React.useState({});
+  const [collections, setCollections] = React.useState({});
+  const [isAccountDisabled, setIsAccountDisabled] = React.useState(!!disabledMembers[user]);
+  
+  const [notifications, setNotifications] = React.useState([]);
+  const prevStatusRef = React.useRef({});
+  const locallyCancelledRef = React.useRef(new Set()); 
+  
+  // Weather state for the header widget (simple)
+  const [weather, setWeather] = React.useState(null);
+  const [weatherLoading, setWeatherLoading] = React.useState(true);
+
+  const seqMap = React.useMemo(() => buildSequenceMaps(daysData, requests), [daysData, requests]);
+
+  // Fetch Weather for header widget
+  React.useEffect(() => {
+    const fetchWeather = async (lat, lon) => {
+      try {
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`);
+        const data = await res.json();
+        setWeather(data);
+      } catch (err) {
+        console.error("Weather fetch error", err);
+      } finally {
+        setWeatherLoading(false);
+      }
+    };
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => fetchWeather(pos.coords.latitude, pos.coords.longitude),
+        () => fetchWeather(33.8938, 35.5018)
+      );
+    } else {
+      fetchWeather(33.8938, 35.5018);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    setNotifications(loadNotifs(user));
+  }, [user]);
+
+  React.useEffect(() => {
+    if (notifications.length >= 0) {
+      saveNotifs(user, notifications);
+    }
+  }, [notifications, user]);
+
+  React.useEffect(() => {
+    if (disabledMembers[user]) setIsAccountDisabled(true); else setIsAccountDisabled(false);
+  }, [disabledMembers, user]);
+
+  React.useEffect(() => {
+    const checkToken = db.ref(DB_PATHS.members + '/' + user + '/sessionToken');
+    checkToken.on('value', (snap) => { if (snap.val() !== sessionToken) onLogout(); });
+    return () => checkToken.off();
+  }, [user, sessionToken, onLogout]);
+
+  React.useEffect(() => {
+    const destRef = db.ref(DB_PATHS.destinations);
+    const reqRef = db.ref(DB_PATHS.requests);
+    const daysRef = db.ref(DB_PATHS.days);
+    const collRef = db.ref(DB_PATHS.collections);
+
+    destRef.on('value', snap => {
+      const data = snap.exists() ? snap.val() : {};
+      setDestinations(Object.keys(data).map(k => ({ id: k, name: data[k].name, icon: data[k].icon })).filter(d => !data[d.id].restricted));
+    });
+    reqRef.on('value', snap => setRequests(snap.exists() ? snap.val() : {}));
+    daysRef.on('value', snap => setDaysData(snap.exists() ? snap.val() : {}));
+    collRef.on('value', snap => setCollections(snap.exists() ? snap.val() : {}));
+
+    return () => { destRef.off(); reqRef.off(); daysRef.off(); collRef.off(); };
+  }, []);
+
+  // Notifications Generation
+  React.useEffect(() => {
+    if (!user || !requests) return;
+    const myRequests = Object.values(requests).filter(r => r && r.member === user);
+    const currentStatuses = {};
+    myRequests.forEach(r => { currentStatuses[r.id] = r.status; });
+
+    if (Object.keys(prevStatusRef.current).length === 0) {
+      prevStatusRef.current = currentStatuses;
+      return;
+    }
+
+    Object.keys(currentStatuses).forEach(reqId => {
+      if (locallyCancelledRef.current.has(reqId)) return;
+
+      const prevStatus = prevStatusRef.current[reqId];
+      const currStatus = currentStatuses[reqId];
+      const req = myRequests.find(r => r.id === reqId);
+
+      if (prevStatus === 'pending' && currStatus === 'approved') {
+        const notifId = 'approved_' + reqId;
+        setNotifications(prev => {
+          if (prev.some(n => n.id === notifId)) return prev;
+          return [{ id: notifId, type: 'approved', title: '✅ تم قبول طلب التسليم', msg: 'المبلغ: ' + formatNumber(req.amount) + ' ' + (req.currency === '$' ? '$' : 'ل.ل') + ' — الجهة: ' + (req.dest || '—'), timestamp: Date.now(), read: false }, ...prev].slice(0, 100);
+        });
+      } else if (prevStatus === 'pending' && currStatus === 'rejected') {
+        const notifId = 'rejected_' + reqId;
+        setNotifications(prev => {
+          if (prev.some(n => n.id === notifId)) return prev;
+          return [{ id: notifId, type: 'rejected', title: '❌ تم رفض طلب التسليم', msg: 'المبلغ: ' + formatNumber(req.amount) + ' ' + (req.currency === '$' ? '$' : 'ل.ل') + ' — الجهة: ' + (req.dest || '—'), timestamp: Date.now(), read: false }, ...prev].slice(0, 100);
+        });
+      }
+    });
+    prevStatusRef.current = currentStatuses;
+  }, [requests, user]);
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+  const handleMarkRead = (id) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+  const handleDeleteNotif = (id) => setNotifications(prev => prev.filter(n => n.id !== id));
+  const handleClearNotifs = () => setNotifications([]);
+
+  const pendingCount = Object.values(requests).filter(r => r.member === user && (r.type === 'delivery_request' || r.type === 'transfer_request' || r.type === 'transfer_alert') && r.status === 'pending').length;
+  const showToast = (msg, type = 'success') => setToast({ msg, type });
+
+  const handleCancelRequest = async (reqId) => {
+    if (!window.confirm("هل أنت متأكد من إلغاء هذا الطلب؟")) return;
+    const reqRef = db.ref(DB_PATHS.requests + '/' + reqId);
+    try {
+      const { committed } = await reqRef.transaction((currentData) => {
+        if (currentData && currentData.status === 'pending') {
+          return null; 
+        }
+        return; 
+      });
+      if (committed) {
+        locallyCancelledRef.current.add(reqId);
+        showToast("🗑️ تم إلغاء الطلب بنجاح وسحبه من الإدارة", "success");
+      } else {
+        showToast("⚠️ لا يمكن الإلغاء، تمت معالجة الطلب بالفعل من قبل الإدارة", "error");
+      }
+    } catch (e) {
+      showToast("❌ حدث خطأ أثناء محاولة الإلغاء", "error");
+    }
+  };
+
+  const toggleWeatherWidget = () => {
+    const newVal = !showWeatherWidget;
+    setShowWeatherWidget(newVal);
+    localStorage.setItem('hideWeatherWidget', !newVal);
+  };
+
+  if (isAccountDisabled) return React.createElement(DisabledAccountScreen, { onAcknowledge: onLogout });
+
+  const getHeaderTitle = () => {
+    if (view === 'dashboard') return "الرئيسية";
+    if (view === 'details') return "كافة التفاصيل";
+    if (view === 'mydata') return "بياناتي";
+    if (view === 'destSummary') return "حسب الجهة";
+    return "تطبيق السائق";
+  };
+
+  const weatherInfo = weather ? getWeatherInfo(weather.current.weather_code) : { icon: '🌡️', text: 'جاري التحميل' };
+  const tempNow = weather ? Math.round(weather.current.temperature_2m) : '--';
+
+  return React.createElement("div", { className: "app-container" },
+    // Side Menu
+    React.createElement("div", { className: "side-menu-overlay " + (menuOpen ? 'open' : ''), onClick: () => setMenuOpen(false) }),
+    React.createElement("div", { className: "side-menu " + (menuOpen ? 'open' : '') },
+      React.createElement("div", { className: "menu-header" },
+        React.createElement("div", { className: "avatar" }, "👤"),
+        React.createElement("div", { className: "info" }, React.createElement("h3", null, user), React.createElement("p", null, "سائق - OctuShopper"))
+      ),
+      React.createElement("div", { className: "menu-items" },
+        React.createElement("div", { className: "menu-item " + (view === 'dashboard' ? 'active' : ''), onClick: () => { setView('dashboard'); setMenuOpen(false); } }, React.createElement("span", { className: "icon" }, "🏠"), "الرئيسية"),
+        React.createElement("div", { className: "menu-item " + (view === 'mydata' ? 'active' : ''), onClick: () => { setView('mydata'); setMenuOpen(false); } }, React.createElement("span", { className: "icon" }, "📊"), "بياناتي"),
+        React.createElement("div", { className: "menu-item " + (view === 'destSummary' ? 'active' : ''), onClick: () => { setView('destSummary'); setMenuOpen(false); } }, React.createElement("span", { className: "icon" }, "📍"), "حسب الجهة"),
+        React.createElement("div", { className: "menu-item " + (view === 'details' ? 'active' : ''), onClick: () => { setView('details'); setMenuOpen(false); } }, React.createElement("span", { className: "icon" }, "📋"), "كافة التفاصيل"),
+        React.createElement("div", { className: "menu-item " + (view === 'transfers' ? 'active' : ''), onClick: () => { setView('transfers'); setMenuOpen(false); } }, React.createElement("span", { className: "icon" }, "🔄"), "طلبات التحويل"),
+        // ✅ CHANGED: open full weather screen
+        React.createElement("div", { className: "menu-item", onClick: () => { setShowWeatherScreen(true); setMenuOpen(false); } }, React.createElement("span", { className: "icon" }, "🌤️"), "الطقس")
+      ),
+      React.createElement("div", { className: "menu-footer" }, React.createElement("button", { className: "logout-btn", onClick: onLogout }, "🚪 تسجيل الخروج"))
+    ),
+
+    // Header
+    React.createElement("div", { className: "app-header" },
+      React.createElement("div", { className: "header-left" },
+        React.createElement("div", { className: "menu-btn", onClick: () => setMenuOpen(true) }, "☰"),
+        React.createElement("div", { className: "header-title" }, React.createElement("h1", null, getHeaderTitle()), React.createElement("p", null, "تطبيق السائق"))
+      ),
+      React.createElement("div", { className: "header-right" },
+        showWeatherWidget ? React.createElement("div", { className: "weather-widget", onClick: () => setShowWeatherScreen(true) },
+          React.createElement("span", { className: "w-icon" }, weatherInfo.icon),
+          React.createElement("span", { className: "w-temp" }, tempNow + "°"),
+          React.createElement("button", { className: "w-close", onClick: (e) => { e.stopPropagation(); toggleWeatherWidget(); } }, "✕")
+        ) : null,
+        React.createElement("div", { className: "notif-btn", onClick: () => setShowNotifications(true) }, "🔔", unreadCount > 0 ? React.createElement("span", { className: "notif-badge" }, unreadCount) : null),
+        React.createElement("div", { className: "user-badge" }, "👤 ", user)
+      )
+    ),
+
+    // Content
+    React.createElement("div", { className: "main-content" },
+      view === 'dashboard' ? React.createElement(Dashboard, { user: user, onOpenDelivery: () => setShowDeliveryModal(true), onOpenTransferOptions: () => setShowTransferOptions(true), pendingCount: pendingCount }) :
+      view === 'mydata' ? React.createElement(MyDataTab, { user: user, requests: requests, daysData: daysData, collections: collections, destinationsMap: destinations.reduce((acc, d) => { acc[d.name] = d; return acc; }, {}), seqMap: seqMap, onCancelRequest: handleCancelRequest }) :
+      view === 'destSummary' ? React.createElement(DestinationSummaryTab, { user: user, daysData: daysData, destinations: destinations, collections: collections, seqMap: seqMap }) :
+      view === 'details' ? React.createElement(DetailsView, { user: user, requests: requests, daysData: daysData, seqMap: seqMap, onCancelRequest: handleCancelRequest }) : 
+      React.createElement(TransferRequestsView, { user: user, requests: requests, seqMap: seqMap, onCancelRequest: handleCancelRequest }) 
+    ),
+
+    // Modals
+    showDeliveryModal ? React.createElement(DeliveryModal, { user: user, destinations: destinations, onClose: () => setShowDeliveryModal(false), onSuccess: (msg) => { showToast(msg); setView('details'); } }) : null,
+    showTransferOptions ? React.createElement(TransferOptionsModal, { onClose: () => setShowTransferOptions(false), onSelectAlert: () => { setShowTransferOptions(false); setShowTransferAlert(true); }, onSelectAction: () => { setShowTransferOptions(false); setShowTransferAction(true); } }) : null,
+    showTransferAlert ? React.createElement(TransferAlertModal, { user: user, onClose: () => setShowTransferAlert(false), onSuccess: (msg) => { showToast(msg); setView('transfers'); } }) : null,
+    showTransferAction ? React.createElement(TransferActionModal, { user: user, onClose: () => setShowTransferAction(false), onSuccess: (msg) => { showToast(msg); setView('transfers'); } }) : null,
+    showNotifications ? React.createElement(DetailedNotificationsModal, { notifications: notifications, onClose: () => setShowNotifications(false), onMarkRead: handleMarkRead, onDelete: handleDeleteNotif, onClear: handleClearNotifs }) : null,
+
+    // ✅ NEW: Full Weather Screen (from injected weather module)
+    showWeatherScreen ? (
+      window.WeatherScreen
+        ? React.createElement(window.WeatherScreen, { onClose: () => setShowWeatherScreen(false) })
+        : React.createElement("div", {
+            style: { position: 'fixed', inset: 0, zIndex: 9600, background: '#e1f5fe', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16, fontWeight: 'bold', color: '#0277bd' }
+          },
+            React.createElement("div", { style: { width: 46, height: 46, border: '4px solid rgba(255,255,255,0.5)', borderTopColor: '#0288d1', borderRadius: '50%', animation: 'wSpin 0.8s linear infinite' } }),
+            React.createElement("div", null, "⏳ جاري تحميل نظام الطقس..."),
+            React.createElement("button", { onClick: () => setShowWeatherScreen(false), style: { padding: '8px 20px', borderRadius: 20, border: 'none', background: '#0288d1', color: '#fff', fontWeight: 'bold', cursor: 'pointer' } }, "رجوع")
+          )
+    ) : null,
+
+    toast ? React.createElement("div", { className: "toast-container" }, React.createElement(Toast, { message: toast.msg, type: toast.type, onClose: () => setToast(null) })) : null
+  );
+}
+
+// ==========================================
+// 9. طلبات التحويل
+// ==========================================
+function TransferRequestsView({ user, requests, seqMap, onCancelRequest }) {
+  const [lightbox, setLightbox] = React.useState(null);
+
+  const myTransfers = React.useMemo(() => {
+    return Object.values(requests || {}).filter(r => r.member === user && (r.type === 'transfer_alert' || r.type === 'transfer_request')).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+  }, [user, requests]);
+
+  if (myTransfers.length === 0) return React.createElement("div", { className: "empty-state" }, React.createElement("div", { className: "icon" }, "📭"), React.createElement("p", null, "لا توجد طلبات تحويل أو تنبيهات"));
+
+  return React.createElement("div", null,
+    myTransfers.map((item, idx) => {
+      const isAlert = item.type === 'transfer_alert';
+      const seqInfo = seqMap ? seqMap[item.id] : null;
+      return React.createElement("div", { key: item.id || idx, className: "list-item alert" },
+        React.createElement("div", { className: "item-info" },
+          React.createElement("div", { className: "item-title" }, 
+            seqInfo ? React.createElement('span', { className: 'id-badge ' + (seqInfo.prefix === 'out' ? 'out' : 'in') }, seqInfo.label) : null,
+            isAlert ? "🔔 تنبيه تحويل" : "📝 طلب تحويل",
+            item.status === 'pending' ? React.createElement("span", { className: "badge pending" }, "⏳ قيد المراجعة") : 
+            item.status === 'approved' ? React.createElement("span", { className: "badge approved" }, "✅ تم القبول") : 
+            React.createElement("span", { className: "badge rejected" }, "❌ مرفوض")
+          ),
+          React.createElement("div", { className: "item-details" }, "📅 " + item.date + " 🕒 " + formatTime(item.time)),
+          item.notes ? React.createElement("div", { className: "item-details" }, "📝 " + item.notes) : null,
+          item.status === 'pending' ? React.createElement("button", { className: "cancel-btn", onClick: () => onCancelRequest(item.id) }, "❌ إلغاء الطلب") : null
+        ),
+        !isAlert ? React.createElement("div", { className: "item-amount" }, 
+          React.createElement("span", null, item.currency === 'LL' ? formatNumber(item.amount) : parseFloat(item.amount || 0).toFixed(2), React.createElement("small", null, item.currency)),
+          item.image ? React.createElement("img", { src: item.image, className: "item-thumb", onClick: () => setLightbox(item.image) }) : null
+        ) : null
+      );
+    }),
+    lightbox ? React.createElement('div', { className: 'lightbox', onClick: () => setLightbox(null) },
+      React.createElement('img', { src: lightbox, onClick: e => e.stopPropagation() }),
+      React.createElement('button', { className: 'lightbox-close', onClick: () => setLightbox(null) }, '✕')
+    ) : null
+  );
+}
+
+// ==========================================
+// 10. نقطة الدخول (App Root)
+// ==========================================
+function AppRoot() {
+  const [loggedInUser, setLoggedInUser] = React.useState(null);
+  const [sessionToken, setSessionToken] = React.useState(null);
+  const [disabledMembers, setDisabledMembers] = React.useState({});
+  const [isInitializing, setIsInitializing] = React.useState(true);
+
+  React.useEffect(() => {
+    try {
+      const stored = localStorage.getItem('octushopper_driver_auto_login');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && parsed.user && parsed.token) {
+          setLoggedInUser(parsed.user);
+          setSessionToken(parsed.token);
+        }
+      }
+    } catch(e) {}
+    setIsInitializing(false);
+  }, []);
+
+  React.useEffect(() => {
+    const disRef = db.ref(DB_PATHS.disabled);
+    disRef.on('value', snap => setDisabledMembers(snap.exists() ? snap.val() : {}));
+    return () => disRef.off();
+  }, []);
+
+  const handleLogin = (user, token) => { 
+    setLoggedInUser(user); 
+    setSessionToken(token); 
+  };
+  
+  const handleLogout = () => { 
+    localStorage.removeItem('octushopper_driver_auto_login');
+    setLoggedInUser(null); 
+    setSessionToken(null); 
+  };
+
+  if (isInitializing) {
+    return React.createElement("div", { style: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f4f8', fontSize: 18, fontWeight: 'bold' } }, "⏳ جاري التحميل...");
+  }
+
+  if (!loggedInUser) return React.createElement("div", { style: { minHeight: '100vh', background: '#f0f4f8' } }, React.createElement(DriverLoginScreen, { onLogin: handleLogin }));
+  return React.createElement(MainApp, { user: loggedInUser, sessionToken: sessionToken, onLogout: handleLogout, disabledMembers: disabledMembers });
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(React.createElement(AppRoot));
+</script>
+</body>
+</html>
